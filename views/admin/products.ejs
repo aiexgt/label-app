@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Catálogo Base</h1>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="panel">
+        <h2 class="text-sm font-medium text-ink-900 mb-4 pb-3 border-b border-ink-300">Productos</h2>
+        <form action="/admin/products" method="POST" class="mb-6 flex gap-3">
+            <input type="text" name="name" required placeholder="Nombre del producto" class="input-minimal flex-grow">
+            <button type="submit" class="btn-minimal">Añadir</button>
+        </form>
+        <ul class="divide-y divide-ink-300">
+            <% if (products.length > 0) { %>
+                <% products.forEach(product => { %>
+                    <li class="py-3 flex justify-between items-center group">
+                        <span class="text-sm text-ink-900"><%= product.name %></span>
+                        <form action="/admin/products/<%= product.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar producto?');" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
+                        </form>
+                    </li>
+                <% }) %>
+            <% } else { %>
+                <li class="py-4 text-xs text-ink-500 text-center bg-surface rounded">Sin registros</li>
+            <% } %>
+        </ul>
+    </div>
+    
+    <div class="panel">
+        <h2 class="text-sm font-medium text-ink-900 mb-4 pb-3 border-b border-ink-300">Calidades</h2>
+        <form action="/admin/qualities" method="POST" class="mb-6 flex gap-3">
+            <input type="text" name="name" required placeholder="Nombre de la calidad" class="input-minimal flex-grow">
+            <button type="submit" class="btn-minimal">Añadir</button>
+        </form>
+        <ul class="divide-y divide-ink-300">
+            <% if (qualities.length > 0) { %>
+                <% qualities.forEach(quality => { %>
+                    <li class="py-3 flex justify-between items-center group">
+                        <span class="text-sm text-ink-900"><%= quality.name %></span>
+                        <form action="/admin/qualities/<%= quality.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar calidad?');" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
+                        </form>
+                    </li>
+                <% }) %>
+            <% } else { %>
+                <li class="py-4 text-xs text-ink-500 text-center bg-surface rounded">Sin registros</li>
+            <% } %>
+        </ul>
+    </div>
+</div>
+<%- include('../partials/footer') %>

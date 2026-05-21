@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Administración de Usuarios</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="panel h-fit md:col-span-1">
+        <h2 class="text-sm font-medium text-ink-900 mb-4 pb-3 border-b border-ink-300">Crear Nuevo Usuario</h2>
+        <form action="/admin/users" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-ink-900 mb-1">Nombre de Usuario</label>
+                <input type="text" name="username" required class="input-minimal" placeholder="Ej. juan_perez">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-ink-900 mb-1">Contraseña</label>
+                <input type="password" name="password" required class="input-minimal" placeholder="••••••••">
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" name="is_admin" id="is_admin" class="rounded border-ink-300 text-brand-500 focus:ring-brand-500">
+                <label for="is_admin" class="text-xs text-ink-700 font-medium">Dar permisos de Administrador</label>
+            </div>
+            <div class="pt-2">
+                <button type="submit" class="w-full btn-minimal">Crear Usuario</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel md:col-span-2">
+        <h2 class="text-sm font-medium text-ink-900 mb-4 pb-4 border-b border-ink-300">Roles y Permisos</h2>
+    <ul class="divide-y divide-ink-300">
+        <% users.forEach(u => { %>
+            <li class="py-4 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-ink-900"><%= u.username %></p>
+                    <p class="text-[11px] text-ink-500 uppercase tracking-wider"><%= u.is_admin ? 'Administrador' : 'Operador' %></p>
+                </div>
+                <form action="/admin/users/<%= u.id %>/toggle_admin" method="POST">
+                    <button type="submit" class="text-xs font-medium <%= u.is_admin ? 'text-amber-600 hover:text-amber-700' : 'text-brand-600 hover:text-brand-700' %> transition-colors">
+                        <%= u.is_admin ? 'Remover Admin' : 'Hacer Admin' %>
+                    </button>
+                </form>
+            </li>
+        <% }) %>
+    </ul>
+    
+    </div>
+</div>
+<%- include('../partials/footer') %>

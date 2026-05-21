@@ -1,0 +1,32 @@
+<%- include('partials/header') %>
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="max-w-sm w-full space-y-6 panel">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-medium tracking-tight text-ink-900">Bienvenido</h2>
+            <p class="mt-2 text-sm text-ink-500">Inicia sesión en tu cuenta</p>
+        </div>
+        
+        <% if (error) { %>
+            <div class="bg-red-50 border border-red-100 p-3 rounded text-center">
+                <p class="text-xs text-red-600"><%= error %></p>
+            </div>
+        <% } %>
+        
+        <form class="space-y-4" action="/auth/login" method="POST">
+            <div>
+                <label for="username" class="sr-only">Usuario</label>
+                <input id="username" name="username" type="text" required class="input-minimal" placeholder="Usuario">
+            </div>
+            <div>
+                <label for="password" class="sr-only">Contraseña</label>
+                <input id="password" name="password" type="password" required class="input-minimal" placeholder="Contraseña">
+            </div>
+            <div class="pt-2">
+                <button type="submit" class="w-full btn-minimal">
+                    Ingresar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<%- include('partials/footer') %>

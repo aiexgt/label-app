@@ -1,0 +1,28 @@
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Archivos de control de versiones y entorno local
+.git
+.gitignore
+.dockerignore
+.env
+.env.*
+
+# Bases de datos y archivos subidos localmente
+database/
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Archivos de sistema y logs
+.DS_Store
+Thumbs.db
+logs/
+*.log
+
+# Carpetas de desarrollo/IA
+.gemini/
+
+# Otros archivos no necesarios en producción
+docker-compose.yml
+README.md
