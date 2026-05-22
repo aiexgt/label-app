@@ -11,7 +11,7 @@
                 <option value="">Seleccione una etiqueta...</option>
                 <% labels.forEach(l => { %>
                     <option value="<%= l.id %>" data-qty="<%= l.qty_per_sheet %>" data-uprice="<%= l.unit_price %>" data-lpercent="<%= l.labor_percentage %>">
-                        [<%= l.product_name %>] <%= l.height %>x<%= l.width %>cm - <%= l.paper_type || 'Matte' %> (<%= l.qty_per_sheet %> x hoja)
+                        [<%= l.product_name %>] <%= l.height %>x<%= l.width %>cm - <%= l.paper_type || 'Matte' %> (<%= l.qty_per_sheet %> x hoja) <%= l.tags ? `[Tags: ${l.tags}]` : '' %>
                     </option>
                 <% }) %>
             </select>

@@ -46,7 +46,7 @@ router.get('/orders/new', async (req, res) => {
     try {
         // Fetch labels to select from
         const labelsResult = await pool.query(`
-            SELECT l.id, p.name as product_name, l.height, l.width, l.qty_per_sheet, l.unit_price, l.labor_percentage
+            SELECT l.id, p.name as product_name, l.height, l.width, l.qty_per_sheet, l.unit_price, l.labor_percentage, l.paper_type, l.tags
             FROM labels l
             JOIN products p ON l.product_id = p.id
         `);
