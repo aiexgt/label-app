@@ -132,7 +132,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
                                 <div class="flex flex-col gap-2 items-end">
                                     <a href="/admin/labels/<%= label.id %>/edit" class="text-brand-600 hover:text-brand-800 transition-colors">Editar</a>
-                                    <form action="/admin/labels/<%= label.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar etiqueta?');">
+                                    <form action="/admin/labels/<%= label.id %>/delete" method="POST" class="ajax-delete-form" onsubmit="return confirm('¿Eliminar etiqueta?');">
                                         <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
                                     </form>
                                 </div>

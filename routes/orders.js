@@ -90,6 +90,9 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true });
+        }
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);

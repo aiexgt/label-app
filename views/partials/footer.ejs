@@ -1,6 +1,49 @@
     </main>
     <footer class="mt-auto py-6 text-center">
-        <p class="text-xs text-ink-500">&copy; 2026 LabelPro Business. Diseño Minimalista.</p>
+        <p class="text-xs text-ink-500">&copy; 2026 Etiquetas Alex. Diseño Minimalista.</p>
     </footer>
+    <script>
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.classList.contains('ajax-delete-form')) {
+                e.preventDefault();
+                
+                fetch(form.action, {
+                    method: form.method || 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new FormData(form)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        const item = form.closest('tr, li, .group');
+                        if(item) {
+                            item.style.transition = 'opacity 0.3s ease';
+                            item.style.opacity = '0';
+                            setTimeout(() => {
+                                item.remove();
+                                // Si estamos en el dashboard, intentar reducir el contador de la columna
+                                const parentCol = item.closest('.sortable-list');
+                                if (parentCol) {
+                                    const statusId = parentCol.getAttribute('data-status');
+                                    const countEl = document.getElementById('count-' + statusId);
+                                    if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        alert('Error: ' + (data.error || 'No se pudo eliminar'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error de red al intentar eliminar.');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

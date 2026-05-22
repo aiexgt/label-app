@@ -7,7 +7,7 @@
     <form action="/orders" method="POST" class="space-y-6">
         <div>
             <label class="block text-sm font-medium text-ink-900 mb-1.5">Etiqueta a Imprimir</label>
-            <select name="label_id" required class="input-minimal w-full font-medium" onchange="updateEstimates()">
+            <select name="label_id" id="label_id" required class="w-full font-medium">
                 <option value="">Seleccione una etiqueta...</option>
                 <% labels.forEach(l => { %>
                     <option value="<%= l.id %>" data-qty="<%= l.qty_per_sheet %>" data-uprice="<%= l.unit_price %>" data-lpercent="<%= l.labor_percentage %>">
@@ -55,8 +55,18 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        new TomSelect("#label_id", {
+            create: false,
+            placeholder: "Seleccione una etiqueta...",
+            onChange: function() {
+                updateEstimates();
+            }
+        });
+    });
+
     function updateEstimates() {
-        const select = document.querySelector('select[name="label_id"]');
+        const select = document.getElementById('label_id');
         const quantity = document.getElementById('quantity').value;
         if (select.value && quantity) {
             const option = select.options[select.selectedIndex];

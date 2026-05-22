@@ -52,6 +52,7 @@ router.post('/products/:id/delete', async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM products WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
         res.redirect('/admin/products');
     } catch (err) {
         console.error(err);
@@ -87,6 +88,7 @@ router.post('/qualities/:id/delete', async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM qualities WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
         res.redirect('/admin/products');
     } catch (err) {
         console.error(err);
@@ -122,6 +124,7 @@ router.post('/printers/:id/delete', async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM printers WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
         res.redirect('/admin/printers');
     } catch (err) {
         console.error(err);
@@ -266,6 +269,7 @@ router.post('/labels/:id/delete', async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM labels WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
         res.redirect('/admin/labels');
     } catch (err) {
         console.error(err);

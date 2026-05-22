@@ -14,7 +14,7 @@
                 <% products.forEach(product => { %>
                     <li class="py-3 flex justify-between items-center group">
                         <span class="text-sm text-ink-900"><%= product.name %></span>
-                        <form action="/admin/products/<%= product.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar producto?');" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <form action="/admin/products/<%= product.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity" onsubmit="return confirm('¿Eliminar producto? Se eliminarán también las etiquetas asociadas.');">
                             <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
                         </form>
                     </li>
@@ -36,7 +36,7 @@
                 <% qualities.forEach(quality => { %>
                     <li class="py-3 flex justify-between items-center group">
                         <span class="text-sm text-ink-900"><%= quality.name %></span>
-                        <form action="/admin/qualities/<%= quality.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar calidad?');" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <form action="/admin/qualities/<%= quality.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity" onsubmit="return confirm('¿Eliminar calidad?');">
                             <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
                         </form>
                     </li>
