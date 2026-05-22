@@ -3,8 +3,8 @@ version: '3.8'
 services:
   web:
     build: .
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       - DB_HOST=db
       - DB_USER=${DB_USER:-postgres}
@@ -15,8 +15,8 @@ services:
       - db
     restart: unless-stopped
     volumes:
-      # Volúmen local para no perder los archivos subidos (imágenes, word, pdf) al reiniciar
-      - ./public/uploads:/app/public/uploads
+      # Volumen nombrado para que Coolify lo gestione sin depender del path local
+      - label_uploads:/app/public/uploads
 
   db:
     image: postgres:15-alpine
@@ -31,3 +31,4 @@ services:
 
 volumes:
   postgres_data:
+  label_uploads:
