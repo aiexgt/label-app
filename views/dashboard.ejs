@@ -58,6 +58,16 @@
                             <% if (order.quality_name) { %><span class="font-medium text-ink-700">Calidad:</span> <%= order.quality_name %><% } %>
                         </p>
                         
+                        <% if (order.tags) { %>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                <% order.tags.split(',').forEach(tag => { %>
+                                    <% if(tag.trim() !== '') { %>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-50 text-brand-700 uppercase tracking-wider border border-brand-200"><%= tag.trim() %></span>
+                                    <% } %>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                        
                         <% if (order.operator_username) { %>
                             <div class="mb-3">
                                 <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">

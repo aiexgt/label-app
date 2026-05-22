@@ -49,6 +49,7 @@ CREATE TABLE labels (
     labor_percentage NUMERIC(10,2) NOT NULL DEFAULT 0,
     qty_per_sheet INTEGER NOT NULL DEFAULT 1,
     paper_type VARCHAR(50) DEFAULT 'Matte',
+    tags VARCHAR(255),
     printer_id INTEGER REFERENCES printers(id) ON DELETE SET NULL
 );
 

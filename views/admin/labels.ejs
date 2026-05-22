@@ -65,6 +65,10 @@
                     </select>
                 </div>
             </div>
+            <div class="mt-4">
+                <label class="block text-xs font-medium text-ink-900 mb-1">Tags (separados por comas)</label>
+                <input type="text" name="tags" placeholder="Ej. Urgente, VIP, Troquelado" class="input-minimal">
+            </div>
             <div class="space-y-3 pt-2">
                 <label class="block text-xs font-medium text-ink-900">Archivos</label>
                 <input type="file" name="image" accept="image/*" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
@@ -123,9 +127,12 @@
                                 </details>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
-                                <form action="/admin/labels/<%= label.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar etiqueta?');">
-                                    <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
-                                </form>
+                                <div class="flex flex-col gap-2 items-end">
+                                    <a href="/admin/labels/<%= label.id %>/edit" class="text-brand-600 hover:text-brand-800 transition-colors">Editar</a>
+                                    <form action="/admin/labels/<%= label.id %>/delete" method="POST" onsubmit="return confirm('¿Eliminar etiqueta?');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <% }) %>

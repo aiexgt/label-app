@@ -165,7 +165,7 @@ router.post('/labels', upload.fields([
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 }
 ]), async (req, res) => {
-    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type } = req.body;
+    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type, tags } = req.body;
     
     let image_path = req.files && req.files['image'] ? '/uploads/' + req.files['image'][0].filename : null;
     let word_path = req.files && req.files['word'] ? '/uploads/' + req.files['word'][0].filename : null;
@@ -173,12 +173,51 @@ router.post('/labels', upload.fields([
 
     try {
         const query = `
-            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, unit_price, labor_percentage, qty_per_sheet, paper_type, printer_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, unit_price, labor_percentage, qty_per_sheet, paper_type, tags, printer_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         `;
         await pool.query(query, [
             product_id || null, height, width, image_path, word_path, pdf_path, 
-            quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', printer_id || null
+            quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null
+        ]);
+        res.redirect('/admin/labels');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/labels/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const labelQuery = await pool.query('SELECT * FROM labels WHERE id = $1', [id]);
+        if (labelQuery.rows.length === 0) return res.status(404).send('Label not found');
+        const products = await pool.query('SELECT * FROM products');
+        const qualities = await pool.query('SELECT * FROM qualities');
+        const printers = await pool.query('SELECT * FROM printers');
+        res.render('admin/labels_edit', { 
+            label: labelQuery.rows[0],
+            products: products.rows,
+            qualities: qualities.rows,
+            printers: printers.rows
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/labels/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type, tags } = req.body;
+    try {
+        const query = `
+            UPDATE labels 
+            SET product_id=$1, height=$2, width=$3, quality_id=$4, unit_price=$5, labor_percentage=$6, qty_per_sheet=$7, paper_type=$8, tags=$9, printer_id=$10
+            WHERE id = $11
+        `;
+        await pool.query(query, [
+            product_id || null, height, width, quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null, id
         ]);
         res.redirect('/admin/labels');
     } catch (err) {
