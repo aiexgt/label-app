@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated } = require('../middleware/auth');
+const { isAuthenticated, isAdmin } = require('../middleware/auth');
 
 router.use(isAuthenticated);
 
@@ -78,6 +78,18 @@ router.post('/orders', async (req, res) => {
         `;
         
         await pool.query(insertQuery, [label_id, quantity, total_sheets, total_payment, total_labor_payment, observations]);
+        res.redirect('/dashboard');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Delete Order
+router.post('/orders/:id/delete', isAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM orders WHERE id = $1', [id]);
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
