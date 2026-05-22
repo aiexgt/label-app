@@ -103,6 +103,9 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-ink-900"><%= label.product_name %> <span class="text-xs font-normal text-ink-500">(<%= label.paper_type || 'Matte' %>)</span></div>
                                 <div class="text-xs text-ink-500"><%= label.quality_name || '-' %> &bull; <%= label.printer_name || '-' %></div>
+                                <% if (label.tags) { %>
+                                    <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= label.tags %></div>
+                                <% } %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
                                 <%= label.height %>x<%= label.width %>cm<br><%= label.qty_per_sheet %> unid.

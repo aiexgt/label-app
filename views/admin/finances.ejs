@@ -60,7 +60,12 @@
                                         <%= d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) %>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= order.id %></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-ink-900"><%= order.product_name %> <span class="text-ink-500">(<%= order.quantity %>)</span></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-ink-900"><%= order.product_name %> <span class="text-ink-500">(<%= order.quantity %>)</span></div>
+                                        <% if (order.tags) { %>
+                                            <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= order.tags %></div>
+                                        <% } %>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500 text-right">
                                         Q<%= order.total_labor_payment %>
                                     </td>

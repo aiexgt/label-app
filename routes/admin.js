@@ -281,7 +281,7 @@ router.get('/finances', async (req, res) => {
     try {
         // 1. Fetch Orders
         let ordersQuery = `
-            SELECT o.*, p.name as product_name
+            SELECT o.*, p.name as product_name, l.tags
             FROM orders o
             JOIN labels l ON o.label_id = l.id
             JOIN products p ON l.product_id = p.id
