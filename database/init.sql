@@ -22,7 +22,7 @@ CREATE TABLE users (
 
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE qualities (
@@ -48,6 +48,7 @@ CREATE TABLE labels (
     unit_price NUMERIC(10,2) NOT NULL DEFAULT 0,
     labor_percentage NUMERIC(10,2) NOT NULL DEFAULT 0,
     qty_per_sheet INTEGER NOT NULL DEFAULT 1,
+    paper_type VARCHAR(50) DEFAULT 'Matte',
     printer_id INTEGER REFERENCES printers(id) ON DELETE SET NULL
 );
 

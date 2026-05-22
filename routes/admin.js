@@ -40,6 +40,9 @@ router.post('/products', async (req, res) => {
         await pool.query('INSERT INTO products (name) VALUES ($1)', [name]);
         res.redirect('/admin/products');
     } catch (err) {
+        if (err.code === '23505') {
+            return res.status(400).send('Error: El producto ya existe.');
+        }
         console.error(err);
         res.status(500).send('Server Error');
     }
@@ -162,7 +165,7 @@ router.post('/labels', upload.fields([
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 }
 ]), async (req, res) => {
-    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id } = req.body;
+    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type } = req.body;
     
     let image_path = req.files && req.files['image'] ? '/uploads/' + req.files['image'][0].filename : null;
     let word_path = req.files && req.files['word'] ? '/uploads/' + req.files['word'][0].filename : null;
@@ -170,12 +173,12 @@ router.post('/labels', upload.fields([
 
     try {
         const query = `
-            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, unit_price, labor_percentage, qty_per_sheet, paper_type, printer_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         `;
         await pool.query(query, [
             product_id || null, height, width, image_path, word_path, pdf_path, 
-            quality_id || null, unit_price, labor_percentage, qty_per_sheet, printer_id || null
+            quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', printer_id || null
         ]);
         res.redirect('/admin/labels');
     } catch (err) {

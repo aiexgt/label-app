@@ -52,9 +52,18 @@
                     <input type="number" step="1" name="labor_percentage" value="10" required class="input-minimal">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
-                <input type="number" name="qty_per_sheet" value="1" required class="input-minimal">
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
+                    <input type="number" name="qty_per_sheet" value="1" required class="input-minimal">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-ink-900 mb-1">Tipo Papel</label>
+                    <select name="paper_type" required class="input-minimal">
+                        <option value="Matte">Matte</option>
+                        <option value="Glossy">Glossy</option>
+                    </select>
+                </div>
             </div>
             <div class="space-y-3 pt-2">
                 <label class="block text-xs font-medium text-ink-900">Archivos</label>
@@ -88,7 +97,7 @@
                         <tr class="hover:bg-surface transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= label.id %></td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-ink-900"><%= label.product_name %></div>
+                                <div class="text-sm font-medium text-ink-900"><%= label.product_name %> <span class="text-xs font-normal text-ink-500">(<%= label.paper_type || 'Matte' %>)</span></div>
                                 <div class="text-xs text-ink-500"><%= label.quality_name || '-' %> &bull; <%= label.printer_name || '-' %></div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
