@@ -70,7 +70,7 @@
                         
                         <% if (order.operator_username) { %>
                             <div class="mb-3">
-                                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                <span id="operator-<%= order.id %>" class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                                     👤 <%= order.operator_username %>
                                 </span>
                             </div>
@@ -82,11 +82,10 @@
                             <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">PDF</a><% } %>
                             <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">Doc</a><% } %>
                         </div>
-                                                <% if (order.observations) { %>
-                            <div class="mt-3 pt-3 border-t border-ink-300">
-                                <p class="text-xs text-ink-500 italic line-clamp-2" title="<%= order.observations %>"><%= order.observations %></p>
-                            </div>
-                        <% } %>
+                        <div class="mt-3 pt-3 border-t border-ink-300 relative group/obs">
+                            <p class="text-[11px] text-ink-500 italic whitespace-pre-wrap" id="obs-text-<%= order.id %>"><%= order.observations || 'Sin observaciones...' %></p>
+                            <button onclick="editObservations(<%= order.id %>)" class="absolute top-1 right-0 opacity-0 group-hover/obs:opacity-100 text-brand-600 hover:text-brand-800 bg-white px-1.5 py-0.5 rounded text-[10px] shadow-sm border border-brand-100 transition-opacity">✏️ Editar</button>
+                        </div>
                     </div>
                 <% }) %>
             </div>
@@ -126,6 +125,11 @@
                                 const toCountEl = document.getElementById('count-' + newStatus);
                                 if (fromCountEl) fromCountEl.textContent = Math.max(0, parseInt(fromCountEl.textContent) - 1);
                                 if (toCountEl) toCountEl.textContent = parseInt(toCountEl.textContent) + 1;
+                                
+                                const opPill = document.getElementById('operator-' + orderId);
+                                if (opPill && data.operator_username) {
+                                    opPill.textContent = '👤 ' + data.operator_username;
+                                }
                             }
                         })
                         .catch(error => {
@@ -138,5 +142,31 @@
             });
         });
     });
+
+    function editObservations(id) {
+        const textEl = document.getElementById('obs-text-' + id);
+        const currentText = textEl.textContent === 'Sin observaciones...' ? '' : textEl.textContent;
+        const newText = prompt('Comentario / Observación para el pedido #' + id + ':', currentText);
+        
+        if (newText !== null) {
+            fetch(`/api/orders/${id}/observations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ observations: newText.trim() })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    textEl.textContent = newText.trim() || 'Sin observaciones...';
+                } else {
+                    alert('Error al guardar: ' + (data.error || 'Desconocido'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error de red al guardar.');
+            });
+        }
+    }
 </script>
 <%- include('partials/footer') %>

@@ -26,11 +26,24 @@ router.post('/orders/:id/status', async (req, res) => {
         await pool.query(
             `UPDATE orders 
              SET status = $1::status_enum, 
-                 operator_id = CASE WHEN operator_id IS NULL AND $1::text != 'pendiente' THEN $2 ELSE operator_id END,
+                 operator_id = $2,
                  updated_at = CURRENT_TIMESTAMP
              WHERE id = $3`, 
             [status, req.session.user.id, id]
         );
+        res.json({ success: true, operator_username: req.session.user.username });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Update order observations
+router.post('/orders/:id/observations', async (req, res) => {
+    const { id } = req.params;
+    const { observations } = req.body;
+    try {
+        await pool.query('UPDATE orders SET observations = $1 WHERE id = $2', [observations, id]);
         res.json({ success: true });
     } catch (err) {
         console.error(err);
