@@ -9,7 +9,7 @@
         
         <div>
             <label class="block text-sm font-medium text-ink-900 mb-1.5">Producto</label>
-            <select name="product_id" required class="input-minimal">
+            <select name="product_id" id="product_id_edit" required class="w-full font-medium">
                 <% products.forEach(p => { %>
                     <option value="<%= p.id %>" <%= label.product_id === p.id ? 'selected' : '' %>><%= p.name %></option>
                 <% }) %>
@@ -85,4 +85,15 @@
         
     </form>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('product_id_edit')) {
+            new TomSelect("#product_id_edit", {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "Seleccione un producto..."
+            });
+        }
+    });
+</script>
 <%- include('../partials/footer') %>
