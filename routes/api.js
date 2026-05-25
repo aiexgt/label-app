@@ -88,11 +88,6 @@ router.post('/orders/:id/quantity', async (req, res) => {
         res.status(500).json({ success: false, error: 'Server error' });
     }
 });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'Server error' });
-    }
-});
 
 // Handle partial payments (abonos)
 router.post('/orders/:id/abono', async (req, res) => {
