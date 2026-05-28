@@ -60,6 +60,7 @@ CREATE TABLE orders (
     status status_enum DEFAULT 'pendiente',
     observations TEXT,
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    position INTEGER DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

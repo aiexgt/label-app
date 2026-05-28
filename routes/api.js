@@ -81,4 +81,25 @@ router.post('/orders/:id/quantity', async (req, res) => {
     }
 });
 
+// Reorder API endpoint to persist Kanban board sorting
+router.post('/orders/reorder', async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids)) {
+        return res.status(400).json({ success: false, error: 'Invalid ids format' });
+    }
+    
+    try {
+        await pool.query('BEGIN');
+        for (let i = 0; i < ids.length; i++) {
+            await pool.query('UPDATE orders SET position = $1 WHERE id = $2', [i, ids[i]]);
+        }
+        await pool.query('COMMIT');
+        res.json({ success: true });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
 module.exports = router;

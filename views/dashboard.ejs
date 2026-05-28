@@ -111,6 +111,24 @@
                     const newStatus = toList.getAttribute('data-status');
                     const oldStatus = evt.from.getAttribute('data-status');
                     
+                    const updateColumnOrder = (listEl) => {
+                        const ids = Array.from(listEl.children)
+                            .map(el => el.getAttribute('data-id'))
+                            .filter(id => id !== null);
+                        return fetch('/api/orders/reorder', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ids })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                console.error('Failed to update column order:', data.error);
+                            }
+                        })
+                        .catch(err => console.error('Error updating column order:', err));
+                    };
+
                     if(newStatus !== oldStatus) {
                         fetch(`/api/orders/${orderId}/status`, {
                             method: 'POST',
@@ -132,6 +150,10 @@
                                 if (opPill && data.operator_username) {
                                     opPill.textContent = '👤 ' + data.operator_username;
                                 }
+                                
+                                // Update positions in both columns
+                                updateColumnOrder(toList);
+                                updateColumnOrder(evt.from);
                             }
                         })
                         .catch(error => {
@@ -139,6 +161,9 @@
                             alert('Error de red');
                             evt.from.appendChild(itemEl);
                         });
+                    } else {
+                        // Same column reordering
+                        updateColumnOrder(toList);
                     }
                 },
             });

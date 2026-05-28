@@ -19,7 +19,7 @@ router.get('/dashboard', async (req, res) => {
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
             WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at) = CURRENT_DATE)
-            ORDER BY o.id DESC
+            ORDER BY o.position ASC, o.id DESC
         `;
         const result = await pool.query(query, [isAdmin]);
         const orders = result.rows;

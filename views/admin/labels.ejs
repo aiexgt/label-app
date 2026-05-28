@@ -9,6 +9,7 @@
             <div>
                 <label class="block text-xs font-medium text-ink-900 mb-1">Producto</label>
                 <select name="product_id" id="product_id_new" required class="w-full font-medium">
+                    <option value="">Seleccione un producto...</option>
                     <% products.forEach(p => { %>
                         <option value="<%= p.id %>"><%= p.name %></option>
                     <% }) %>
