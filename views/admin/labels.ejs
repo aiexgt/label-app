@@ -63,9 +63,18 @@
             </div>
             <div class="space-y-3 pt-2">
                 <label class="block text-xs font-medium text-ink-900">Archivos</label>
-                <input type="file" name="image" accept="image/*" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
-                <input type="file" name="word" accept=".doc,.docx" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
-                <input type="file" name="pdf" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                <div>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">Diseño (Imagen o PDF)</span>
+                    <input type="file" name="image" accept="image/*,application/pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                </div>
+                <div>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">Word (.doc, .docx)</span>
+                    <input type="file" name="word" accept=".doc,.docx" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                </div>
+                <div>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Extra</span>
+                    <input type="file" name="pdf" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                </div>
             </div>
             <div class="pt-3">
                 <button type="submit" class="w-full btn-minimal">Guardar Etiqueta</button>
@@ -73,8 +82,11 @@
         </form>
     </div>
     <div class="panel lg:col-span-2 p-0 overflow-hidden">
-        <div class="px-6 py-4 border-b border-ink-300">
+        <div class="px-6 py-4 border-b border-ink-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h3 class="text-sm font-medium text-ink-900">Directorio de Etiquetas</h3>
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="label-search" placeholder="Buscar etiquetas..." class="input-minimal !py-1 !px-3 text-xs" />
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-ink-300">
@@ -88,7 +100,7 @@
                         <th class="px-6 py-3 text-right text-[11px] font-semibold text-ink-500 uppercase tracking-wider"></th>
                     </tr>
                 </thead>
-                <tbody class="bg-panel divide-y divide-ink-300">
+                <tbody id="labels-table-body" class="bg-panel divide-y divide-ink-300">
                     <% labels.forEach(label => { %>
                         <tr class="hover:bg-surface transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= label.id %></td>
@@ -105,16 +117,16 @@
 
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2.5 text-[11px] text-brand-600 mb-1">
-                                    <% if (label.image_path) { %><a href="<%= label.image_path %>" target="_blank" class="hover:underline">IMG</a><% } %>
+                                    <% if (label.image_path) { %><a href="<%= label.image_path %>" target="_blank" class="hover:underline">Diseño</a><% } %>
                                     <% if (label.word_path) { %><a href="<%= label.word_path %>" target="_blank" class="hover:underline">DOC</a><% } %>
                                     <% if (label.pdf_path) { %><a href="<%= label.pdf_path %>" target="_blank" class="hover:underline">PDF</a><% } %>
                                 </div>
                                 <details class="text-[10px] text-ink-500">
                                     <summary class="cursor-pointer hover:text-ink-900 mb-1">Actualizar archivos...</summary>
                                     <form action="/admin/labels/<%= label.id %>/files" method="POST" enctype="multipart/form-data" class="flex flex-col gap-1 p-1 bg-surface rounded border border-ink-200">
-                                        <div class="flex items-center justify-between"><span class="w-6">IMG:</span><input type="file" name="image" accept="image/*" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-6">DOC:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-6">PDF:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">DISEÑO:</span><input type="file" name="image" accept="image/*,application/pdf" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">WORD:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">PDF:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
                                         <button type="submit" class="text-brand-600 font-medium text-left mt-1 hover:underline">Subir</button>
                                     </form>
                                 </details>
@@ -141,6 +153,24 @@
                 create: false,
                 sortField: { field: "text", direction: "asc" },
                 placeholder: "Seleccione un producto..."
+            });
+        }
+
+        // Live search filter for labels table
+        const searchInput = document.getElementById('label-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const rows = document.querySelectorAll('#labels-table-body tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    if (text.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             });
         }
     });
