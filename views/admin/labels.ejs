@@ -42,16 +42,7 @@
                     <% }) %>
                 </select>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Precio Und.</label>
-                    <input type="number" step="0.01" name="unit_price" value="0" class="input-minimal">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Mano Obra (%)</label>
-                    <input type="number" step="1" name="labor_percentage" value="10" required class="input-minimal">
-                </div>
-            </div>
+
             <div class="grid grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
@@ -91,7 +82,7 @@
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">ID</th>
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Detalles</th>
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Tamaño/Hoja</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Costo/MO</th>
+
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Archivos</th>
                         <th class="px-6 py-3 text-right text-[11px] font-semibold text-ink-500 uppercase tracking-wider"></th>
                     </tr>
@@ -110,9 +101,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
                                 <%= label.height %>x<%= label.width %>cm<br><%= label.qty_per_sheet %> unid.
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
-                                Q<%= label.unit_price %> / <%= label.labor_percentage %>%
-                            </td>
+
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2.5 text-[11px] text-brand-600 mb-1">
                                     <% if (label.image_path) { %><a href="<%= label.image_path %>" target="_blank" class="hover:underline">IMG</a><% } %>

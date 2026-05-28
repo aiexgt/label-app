@@ -168,7 +168,7 @@ router.post('/labels', upload.fields([
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 }
 ]), async (req, res) => {
-    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type, tags } = req.body;
+    const { product_id, height, width, quality_id, qty_per_sheet, printer_id, paper_type, tags } = req.body;
     
     let image_path = req.files && req.files['image'] ? '/uploads/' + req.files['image'][0].filename : null;
     let word_path = req.files && req.files['word'] ? '/uploads/' + req.files['word'][0].filename : null;
@@ -176,12 +176,12 @@ router.post('/labels', upload.fields([
 
     try {
         const query = `
-            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, unit_price, labor_percentage, qty_per_sheet, paper_type, tags, printer_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            INSERT INTO labels (product_id, height, width, image_path, word_path, pdf_path, quality_id, qty_per_sheet, paper_type, tags, printer_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `;
         await pool.query(query, [
             product_id || null, height, width, image_path, word_path, pdf_path, 
-            quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null
+            quality_id || null, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null
         ]);
         res.redirect('/admin/labels');
     } catch (err) {
@@ -212,15 +212,15 @@ router.get('/labels/:id/edit', async (req, res) => {
 
 router.post('/labels/:id/edit', async (req, res) => {
     const { id } = req.params;
-    const { product_id, height, width, quality_id, unit_price, labor_percentage, qty_per_sheet, printer_id, paper_type, tags } = req.body;
+    const { product_id, height, width, quality_id, qty_per_sheet, printer_id, paper_type, tags } = req.body;
     try {
         const query = `
             UPDATE labels 
-            SET product_id=$1, height=$2, width=$3, quality_id=$4, unit_price=$5, labor_percentage=$6, qty_per_sheet=$7, paper_type=$8, tags=$9, printer_id=$10
-            WHERE id = $11
+            SET product_id=$1, height=$2, width=$3, quality_id=$4, qty_per_sheet=$5, paper_type=$6, tags=$7, printer_id=$8
+            WHERE id = $9
         `;
         await pool.query(query, [
-            product_id || null, height, width, quality_id || null, unit_price, labor_percentage, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null, id
+            product_id || null, height, width, quality_id || null, qty_per_sheet, paper_type || 'Matte', tags || null, printer_id || null, id
         ]);
         res.redirect('/admin/labels');
     } catch (err) {
@@ -274,90 +274,6 @@ router.post('/labels/:id/delete', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Error');
-    }
-});
-
-// ==========================================
-// FINANCES
-// ==========================================
-router.get('/finances', async (req, res) => {
-    const { start, end } = req.query;
-    try {
-        // 1. Fetch Orders
-        let ordersQuery = `
-            SELECT o.*, p.name as product_name, l.tags
-            FROM orders o
-            JOIN labels l ON o.label_id = l.id
-            JOIN products p ON l.product_id = p.id
-            WHERE o.status IN ('entregado', 'pagado')
-        `;
-        
-        // 2. Fetch Transactions
-        let transQuery = `SELECT * FROM global_payments WHERE 1=1`;
-        
-        const queryParams = [];
-        let dateFilterOrders = "";
-        let dateFilterTrans = "";
-        
-        if (start && end) {
-            dateFilterOrders = ` AND o.order_date >= $1 AND o.order_date <= $2::date + interval '1 day'`;
-            dateFilterTrans = ` AND created_at >= $1 AND created_at <= $2::date + interval '1 day'`;
-            queryParams.push(start, end);
-        } else if (start) {
-            dateFilterOrders = ` AND o.order_date >= $1`;
-            dateFilterTrans = ` AND created_at >= $1`;
-            queryParams.push(start);
-        } else if (end) {
-            dateFilterOrders = ` AND o.order_date <= $1::date + interval '1 day'`;
-            dateFilterTrans = ` AND created_at <= $1::date + interval '1 day'`;
-            queryParams.push(end);
-        }
-        
-        ordersQuery += dateFilterOrders + ` ORDER BY o.order_date DESC`;
-        transQuery += dateFilterTrans + ` ORDER BY created_at DESC`;
-
-        const ordersResult = await pool.query(ordersQuery, queryParams);
-        const transResult = await pool.query(transQuery, queryParams);
-        
-        let totalToPay = 0;
-        let totalLabor = 0;
-        ordersResult.rows.forEach(o => {
-            totalToPay += parseFloat(o.total_payment);
-            totalLabor += parseFloat(o.total_labor_payment);
-        });
-
-        let totalPaid = 0;
-        transResult.rows.forEach(t => {
-            totalPaid += parseFloat(t.amount);
-        });
-        
-        // El "Por cobrar" (balance) es el total generado menos el total pagado (de las transacciones globales)
-        const balance = totalToPay - totalPaid;
-
-        res.render('admin/finances', {
-            orders: ordersResult.rows,
-            transactions: transResult.rows,
-            totalToPay: balance,
-            totalPaid,
-            totalLabor,
-            start: start || '',
-            end: end || ''
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-// Registrar Transacción Global
-router.post('/finances/transaction', async (req, res) => {
-    const { amount, description } = req.body;
-    try {
-        await pool.query('INSERT INTO global_payments (amount, description) VALUES ($1, $2)', [amount, description]);
-        res.redirect('/admin/finances');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
     }
 });
 

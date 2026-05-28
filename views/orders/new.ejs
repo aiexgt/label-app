@@ -10,7 +10,7 @@
             <select name="label_id" id="label_id" required class="w-full font-medium">
                 <option value="">Seleccione una etiqueta...</option>
                 <% labels.forEach(l => { %>
-                    <option value="<%= l.id %>" data-qty="<%= l.qty_per_sheet %>" data-uprice="<%= l.unit_price %>" data-lpercent="<%= l.labor_percentage %>">
+                    <option value="<%= l.id %>" data-qty="<%= l.qty_per_sheet %>">
                         [<%= l.product_name %>] <%= l.height %>x<%= l.width %>cm - <%= l.paper_type || 'Matte' %> (<%= l.qty_per_sheet %> x hoja) <%= l.tags ? `[Tags: ${l.tags}]` : '' %>
                     </option>
                 <% }) %>
@@ -24,21 +24,11 @@
         
         <div class="bg-surface p-4 rounded-lg border border-ink-300">
             <h3 class="text-xs font-semibold text-ink-500 uppercase tracking-wider mb-3">Estimaciones de Producción</h3>
-            <div class="grid grid-cols-1 <%= user.is_admin ? 'md:grid-cols-3' : '' %> gap-4 text-center">
+            <div class="grid grid-cols-1 gap-4 text-center">
                 <div>
                     <p class="text-xs text-ink-500 font-medium mb-1">Total Hojas</p>
                     <p class="text-xl font-medium text-brand-600" id="est_sheets">0</p>
                 </div>
-                <% if (user.is_admin) { %>
-                <div>
-                    <p class="text-xs text-ink-500 font-medium mb-1">Costo Material</p>
-                    <p class="text-xl font-medium text-ink-900">Q<span id="est_payment">0.00</span></p>
-                </div>
-                <div>
-                    <p class="text-xs text-ink-500 font-medium mb-1">Mano de Obra</p>
-                    <p class="text-xl font-medium text-ink-900">Q<span id="est_labor">0.00</span></p>
-                </div>
-                <% } %>
             </div>
         </div>
         
@@ -71,22 +61,10 @@
         if (select.value && quantity) {
             const option = select.options[select.selectedIndex];
             const qty_per_sheet = option.getAttribute('data-qty') || 1;
-            const uprice = option.getAttribute('data-uprice') || 0;
-            const lpercent = option.getAttribute('data-lpercent') || 0;
             const sheets = Math.ceil(quantity / qty_per_sheet);
-            const total_payment = quantity * uprice;
-            const total_labor = total_payment * (lpercent / 100);
             document.getElementById('est_sheets').textContent = sheets;
-            const estPaymentEl = document.getElementById('est_payment');
-            if (estPaymentEl) estPaymentEl.textContent = total_payment.toFixed(2);
-            const estLaborEl = document.getElementById('est_labor');
-            if (estLaborEl) estLaborEl.textContent = total_labor.toFixed(2);
         } else {
             document.getElementById('est_sheets').textContent = '0';
-            const estPaymentEl = document.getElementById('est_payment');
-            if (estPaymentEl) estPaymentEl.textContent = '0.00';
-            const estLaborEl = document.getElementById('est_labor');
-            if (estLaborEl) estLaborEl.textContent = '0.00';
         }
     }
 </script>

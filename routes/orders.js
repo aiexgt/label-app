@@ -11,15 +11,14 @@ router.get('/dashboard', async (req, res) => {
         const isAdmin = req.session.user.is_admin;
         const query = `
             SELECT o.*, 
-                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.height, l.width, l.tags,
+                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.height, l.width, l.tags, l.paper_type,
                    p.name as product_name, u.username as operator_username, q.name as quality_name
             FROM orders o
             JOIN labels l ON o.label_id = l.id
             JOIN products p ON l.product_id = p.id
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
-            WHERE o.status != 'pagado'
-              AND (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at) = CURRENT_DATE)
+            WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at) = CURRENT_DATE)
             ORDER BY o.id DESC
         `;
         const result = await pool.query(query, [isAdmin]);
@@ -29,6 +28,7 @@ router.get('/dashboard', async (req, res) => {
         const board = {
             'pendiente': orders.filter(o => o.status === 'pendiente'),
             'imprimiendo': orders.filter(o => o.status === 'imprimiendo'),
+            'impreso': orders.filter(o => o.status === 'impreso'),
             'cortando': orders.filter(o => o.status === 'cortando'),
             'terminado': orders.filter(o => o.status === 'terminado'),
             'entregado': orders.filter(o => o.status === 'entregado')
@@ -46,7 +46,7 @@ router.get('/orders/new', async (req, res) => {
     try {
         // Fetch labels to select from
         const labelsResult = await pool.query(`
-            SELECT l.id, p.name as product_name, l.height, l.width, l.qty_per_sheet, l.unit_price, l.labor_percentage, l.paper_type, l.tags
+            SELECT l.id, p.name as product_name, l.height, l.width, l.qty_per_sheet, l.paper_type, l.tags
             FROM labels l
             JOIN products p ON l.product_id = p.id
         `);
@@ -69,15 +69,13 @@ router.post('/orders', async (req, res) => {
         const label = labelQuery.rows[0];
         const qty_per_sheet = label.qty_per_sheet || 1;
         const total_sheets = Math.ceil(quantity / qty_per_sheet);
-        const total_payment = quantity * label.unit_price;
-        const total_labor_payment = total_payment * (label.labor_percentage / 100);
 
         const insertQuery = `
-            INSERT INTO orders (label_id, quantity, total_sheets, total_payment, total_labor_payment, observations)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO orders (label_id, quantity, total_sheets, observations)
+            VALUES ($1, $2, $3, $4)
         `;
         
-        await pool.query(insertQuery, [label_id, quantity, total_sheets, total_payment, total_labor_payment, observations]);
+        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations]);
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);

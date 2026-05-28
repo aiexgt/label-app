@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS users CASCADE;
 DROP TYPE IF EXISTS status_enum CASCADE;
 
 -- Create ENUM for order status
-CREATE TYPE status_enum AS ENUM ('pendiente', 'imprimiendo', 'cortando', 'terminado', 'entregado', 'pagado');
+CREATE TYPE status_enum AS ENUM ('pendiente', 'imprimiendo', 'impreso', 'cortando', 'terminado', 'entregado');
 
 -- Create Tables
 CREATE TABLE users (
@@ -45,8 +45,6 @@ CREATE TABLE labels (
     word_path VARCHAR(255),
     pdf_path VARCHAR(255),
     quality_id INTEGER REFERENCES qualities(id) ON DELETE SET NULL,
-    unit_price NUMERIC(10,2) NOT NULL DEFAULT 0,
-    labor_percentage NUMERIC(10,2) NOT NULL DEFAULT 0,
     qty_per_sheet INTEGER NOT NULL DEFAULT 1,
     paper_type VARCHAR(50) DEFAULT 'Matte',
     tags VARCHAR(255),
@@ -59,19 +57,10 @@ CREATE TABLE orders (
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     quantity INTEGER NOT NULL,
     total_sheets INTEGER NOT NULL,
-    total_payment NUMERIC(10,2) NOT NULL,
-    total_labor_payment NUMERIC(10,2) NOT NULL,
     status status_enum DEFAULT 'pendiente',
     observations TEXT,
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE global_payments (
-    id SERIAL PRIMARY KEY,
-    amount NUMERIC(10,2) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert Default Admin User
