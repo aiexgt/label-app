@@ -1,7 +1,9 @@
     </main>
-    <footer class="mt-auto py-6 text-center">
+    <% if (typeof isFluid === 'undefined' || !isFluid) { %>
+    <footer class="mt-auto py-6 text-center flex-shrink-0">
         <p class="text-xs text-ink-500">&copy; 2026 Etiquetas Alex. Diseño Minimalista.</p>
     </footer>
+    <% } %>
     <script>
         document.addEventListener('submit', function(e) {
             const form = e.target;

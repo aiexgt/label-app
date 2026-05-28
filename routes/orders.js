@@ -34,7 +34,7 @@ router.get('/dashboard', async (req, res) => {
             'entregado': orders.filter(o => o.status === 'entregado')
         };
 
-        res.render('dashboard', { board });
+        res.render('dashboard', { board, isFluid: true });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
