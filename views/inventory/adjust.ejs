@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Inventario (Movimientos de Stock)</h1>
+</div>
+
+<!-- Supplies Directory List for Adjusting -->
+<div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-0 overflow-hidden">
+    <div class="px-6 py-4 border-b border-ink-300">
+        <h2 class="text-sm font-medium text-ink-900">Ajuste de Cantidades</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-ink-300">
+            <thead class="bg-surface">
+                <tr>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Suministro</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Cantidad Actual</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Registrar Entrada / Salida</th>
+                </tr>
+            </thead>
+            <tbody class="bg-panel divide-y divide-ink-300">
+                <% if (supplies.length === 0) { %>
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-sm text-ink-500 italic">No hay suministros registrados en el sistema.</td>
+                    </tr>
+                <% } %>
+                <% supplies.forEach(supply => { %>
+                    <tr class="hover:bg-surface transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-ink-900"><%= supply.name %></div>
+                            <div class="text-[10px] text-ink-500 font-mono">ID: #<%= supply.id %></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-ink-900"><%= supply.quantity %></span>
+                            <span class="text-xs text-ink-500"><%= supply.unit_of_measure %></span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <form action="/inventory/<%= supply.id %>/adjust" method="POST" class="flex flex-wrap items-center gap-2">
+                                <input type="number" step="0.01" name="amount" placeholder="Cantidad" required class="input-minimal !py-1 !px-2 w-20 text-xs">
+                                <select name="type" required class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-1.5 focus:ring-0 focus:border-brand-500">
+                                    <option value="salida">Salida (-)</option>
+                                    <option value="entrada">Entrada (+)</option>
+                                </select>
+                                <input type="text" name="concept" placeholder="Motivo (opcional)" class="input-minimal !py-1 !px-2 w-36 text-xs">
+                                <button type="submit" class="text-brand-600 hover:text-brand-800 text-xs font-semibold px-3 py-1 rounded bg-brand-50 hover:bg-brand-100 transition-colors">Registrar</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Movements Log -->
+<div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-0 mt-8 overflow-hidden">
+    <div class="px-6 py-4 border-b border-ink-300">
+        <h2 class="text-sm font-medium text-ink-900">Historial Reciente de Movimientos de Inventario</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-ink-300">
+            <thead class="bg-surface">
+                <tr>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Fecha y Hora</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Suministro</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Movimiento</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Usuario</th>
+                    <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Concepto / Motivo</th>
+                </tr>
+            </thead>
+            <tbody class="bg-panel divide-y divide-ink-300 text-xs">
+                <% if (movements.length === 0) { %>
+                    <tr>
+                        <td colspan="5" class="px-6 py-6 text-center text-ink-500 italic">No se han registrado movimientos de inventario todavía.</td>
+                    </tr>
+                <% } %>
+                <% movements.forEach(m => { %>
+                    <tr class="hover:bg-surface transition-colors">
+                        <td class="px-6 py-3 whitespace-nowrap text-ink-500 font-mono">
+                            <%= new Date(m.created_at).toLocaleDateString('es-ES') %> a las <%= new Date(m.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap font-medium text-ink-900">
+                            <%= m.supply_name || 'Suministro Eliminado' %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <% if (m.type === 'entrada') { %>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50">+<%= m.quantity %></span>
+                            <% } else { %>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50">-<%= m.quantity %></span>
+                            <% } %>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-ink-500">
+                            👤 <%= m.username || 'Desconocido' %>
+                        </td>
+                        <td class="px-6 py-3 text-ink-700 max-w-xs truncate" title="<%= m.concept %>">
+                            <%= m.concept || '-' %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include('../partials/footer') %>

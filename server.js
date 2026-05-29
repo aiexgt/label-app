@@ -44,7 +44,7 @@ const inventoryRoutes = require('./routes/inventory');
 app.use('/auth', authRoutes);
 app.use('/', ordersRoutes); // Handles /dashboard and /orders
 app.use('/admin', adminRoutes);
-app.use('/admin/inventory', inventoryRoutes);
+app.use('/inventory', inventoryRoutes);
 app.use('/api', apiRoutes);
 
 // Root redirect

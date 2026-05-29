@@ -364,4 +364,86 @@ router.post('/users/:id/delete', async (req, res) => {
     }
 });
 
+// ==========================================
+// SUPPLIES CRUD (Admin only)
+// ==========================================
+router.get('/inventory', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM supplies ORDER BY name ASC');
+        res.render('admin/inventory', { supplies: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/inventory', async (req, res) => {
+    const { name, quantity, unit_of_measure } = req.body;
+    try {
+        await pool.query('BEGIN');
+        const insertRes = await pool.query(
+            'INSERT INTO supplies (name, quantity, unit_of_measure) VALUES ($1, $2, $3) RETURNING id',
+            [name, parseFloat(quantity) || 0, unit_of_measure]
+        );
+        const supplyId = insertRes.rows[0].id;
+        
+        // Record initial inventory movement
+        await pool.query(
+            'INSERT INTO supply_movements (supply_id, user_id, type, quantity, concept) VALUES ($1, $2, $3, $4, $5)',
+            [supplyId, req.session.user.id, 'entrada', parseFloat(quantity) || 0, 'Inventario inicial']
+        );
+        await pool.query('COMMIT');
+        res.redirect('/admin/inventory');
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        if (err.code === '23505') {
+            return res.status(400).send('Error: El suministro ya existe.');
+        }
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/inventory/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('SELECT * FROM supplies WHERE id = $1', [id]);
+        if (result.rows.length === 0) return res.status(404).send('Supply not found');
+        res.render('admin/inventory_edit', { supply: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/inventory/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { name, unit_of_measure } = req.body;
+    try {
+        await pool.query(
+            'UPDATE supplies SET name = $1, unit_of_measure = $2 WHERE id = $3',
+            [name, unit_of_measure, id]
+        );
+        res.redirect('/admin/inventory');
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(400).send('Error: Ya existe otro suministro con ese nombre.');
+        }
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/inventory/:id/delete', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM supplies WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
+        res.redirect('/admin/inventory');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error');
+    }
+});
+
 module.exports = router;
