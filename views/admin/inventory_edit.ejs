@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<div class="mb-6">
+    <a href="/admin/inventory" class="text-sm text-brand-600 hover:underline mb-2 inline-block">&larr; Volver a Inventario</a>
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Editar Suministro: <%= supply.name %></h1>
+</div>
+
+<div class="panel max-w-md mx-auto bg-panel border border-ink-300 rounded-lg shadow-subtle p-6">
+    <form action="/admin/inventory/<%= supply.id %>/edit" method="POST" class="space-y-5">
+        <div>
+            <label class="block text-sm font-medium text-ink-900 mb-1.5">Nombre del Suministro</label>
+            <input type="text" name="name" value="<%= supply.name %>" required class="input-minimal">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-ink-900 mb-1.5">Unidad de Medida</label>
+            <input type="text" name="unit_of_measure" value="<%= supply.unit_of_measure %>" required class="input-minimal">
+        </div>
+        
+        <div class="pt-4 border-t border-ink-300">
+            <button type="submit" class="w-full btn-minimal">Guardar Cambios</button>
+            <p class="text-[10px] text-ink-500 text-center mt-3">Nota: El stock actual solo puede incrementarse o reducirse mediante el formulario de ajuste de stock en la página principal del inventario para mantener la integridad de la bitácora de movimientos.</p>
+        </div>
+    </form>
+</div>
+<%- include('../partials/footer') %>

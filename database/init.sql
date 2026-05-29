@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS labels CASCADE;
 DROP TABLE IF EXISTS qualities CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS supply_movements CASCADE;
+DROP TABLE IF EXISTS supplies CASCADE;
 
 DROP TYPE IF EXISTS status_enum CASCADE;
 
@@ -56,6 +58,24 @@ CREATE TABLE orders (
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     position INTEGER DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Inventory & supplies tables
+CREATE TABLE supplies (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    quantity NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+    unit_of_measure VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE supply_movements (
+    id SERIAL PRIMARY KEY,
+    supply_id INTEGER REFERENCES supplies(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    type VARCHAR(10) NOT NULL CHECK (type IN ('entrada', 'salida')),
+    quantity NUMERIC(10,2) NOT NULL,
+    concept VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert Default Admin User

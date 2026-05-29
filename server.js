@@ -38,11 +38,13 @@ const authRoutes = require('./routes/auth');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const apiRoutes = require('./routes/api');
+const inventoryRoutes = require('./routes/inventory');
 
 // Use Routes
 app.use('/auth', authRoutes);
 app.use('/', ordersRoutes); // Handles /dashboard and /orders
 app.use('/admin', adminRoutes);
+app.use('/admin/inventory', inventoryRoutes);
 app.use('/api', apiRoutes);
 
 // Root redirect
