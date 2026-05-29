@@ -27,25 +27,14 @@
             </div>
         </div>
         
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-ink-900 mb-1.5">Calidad</label>
-                <select name="quality_id" class="input-minimal">
-                    <option value="">Ninguna</option>
-                    <% qualities.forEach(q => { %>
-                        <option value="<%= q.id %>" <%= label.quality_id === q.id ? 'selected' : '' %>><%= q.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-ink-900 mb-1.5">Impresora</label>
-                <select name="printer_id" class="input-minimal">
-                    <option value="">Ninguna</option>
-                    <% printers.forEach(p => { %>
-                        <option value="<%= p.id %>" <%= label.printer_id === p.id ? 'selected' : '' %>><%= p.name %></option>
-                    <% }) %>
-                </select>
-            </div>
+        <div>
+            <label class="block text-sm font-medium text-ink-900 mb-1.5">Calidad</label>
+            <select name="quality_id" class="input-minimal">
+                <option value="">Ninguna</option>
+                <% qualities.forEach(q => { %>
+                    <option value="<%= q.id %>" <%= label.quality_id === q.id ? 'selected' : '' %>><%= q.name %></option>
+                <% }) %>
+            </select>
         </div>
         
 

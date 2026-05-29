@@ -34,16 +34,6 @@
                     <% }) %>
                 </select>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-ink-900 mb-1">Impresora</label>
-                <select name="printer_id" class="input-minimal">
-                    <option value="">Ninguna</option>
-                    <% printers.forEach(p => { %>
-                        <option value="<%= p.id %>"><%= p.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-
             <div class="grid grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
@@ -68,12 +58,16 @@
                     <input type="file" name="image" accept="image/*,application/pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
                 </div>
                 <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">Word (.doc, .docx)</span>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">DOC (Word)</span>
                     <input type="file" name="word" accept=".doc,.docx" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
                 </div>
                 <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Extra</span>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Grupo</span>
                     <input type="file" name="pdf" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                </div>
+                <div>
+                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Individual</span>
+                    <input type="file" name="pdf_individual" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
                 </div>
             </div>
             <div class="pt-3">
@@ -106,7 +100,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= label.id %></td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-ink-900"><%= label.product_name %> <span class="text-xs font-normal text-ink-500">(<%= label.paper_type || 'Matte' %>)</span></div>
-                                <div class="text-xs text-ink-500"><%= label.quality_name || '-' %> &bull; <%= label.printer_name || '-' %></div>
+                                <div class="text-xs text-ink-500"><%= label.quality_name || '-' %></div>
                                 <% if (label.tags) { %>
                                     <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= label.tags %></div>
                                 <% } %>
@@ -116,17 +110,19 @@
                             </td>
 
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex space-x-2.5 text-[11px] text-brand-600 mb-1">
+                                <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-brand-600 mb-1">
                                     <% if (label.image_path) { %><a href="<%= label.image_path %>" target="_blank" class="hover:underline">Diseño</a><% } %>
                                     <% if (label.word_path) { %><a href="<%= label.word_path %>" target="_blank" class="hover:underline">DOC</a><% } %>
-                                    <% if (label.pdf_path) { %><a href="<%= label.pdf_path %>" target="_blank" class="hover:underline">PDF</a><% } %>
+                                    <% if (label.pdf_path) { %><a href="<%= label.pdf_path %>" target="_blank" class="hover:underline">PDF Grupo</a><% } %>
+                                    <% if (label.pdf_individual_path) { %><a href="<%= label.pdf_individual_path %>" target="_blank" class="hover:underline">PDF Individual</a><% } %>
                                 </div>
                                 <details class="text-[10px] text-ink-500">
                                     <summary class="cursor-pointer hover:text-ink-900 mb-1">Actualizar archivos...</summary>
                                     <form action="/admin/labels/<%= label.id %>/files" method="POST" enctype="multipart/form-data" class="flex flex-col gap-1 p-1 bg-surface rounded border border-ink-200">
-                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">DISEÑO:</span><input type="file" name="image" accept="image/*,application/pdf" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">WORD:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-12 text-[9px] font-semibold text-ink-700">PDF:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DISEÑO:</span><input type="file" name="image" accept="image/*,application/pdf" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DOC:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF GRUPO:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
+                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF INDIV:</span><input type="file" name="pdf_individual" accept=".pdf" class="w-32"></div>
                                         <button type="submit" class="text-brand-600 font-medium text-left mt-1 hover:underline">Subir</button>
                                     </form>
                                 </details>

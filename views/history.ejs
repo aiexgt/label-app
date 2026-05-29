@@ -72,10 +72,11 @@
                                 <%= new Date(order.updated_at).toLocaleDateString('es-ES') %> a las <%= new Date(order.updated_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex space-x-2.5 text-[11px] text-brand-600">
+                                <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-brand-600">
                                     <% if (order.image_path) { %><a href="<%= order.image_path %>" target="_blank" class="hover:underline">Diseño</a><% } %>
                                     <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="hover:underline">DOC</a><% } %>
-                                    <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="hover:underline">PDF</a><% } %>
+                                    <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="hover:underline">PDF Grupo</a><% } %>
+                                    <% if (order.pdf_individual_path) { %><a href="<%= order.pdf_individual_path %>" target="_blank" class="hover:underline">PDF Individual</a><% } %>
                                 </div>
                             </td>
                         </tr>

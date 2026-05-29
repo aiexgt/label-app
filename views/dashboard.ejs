@@ -85,10 +85,11 @@
                         <% } %>
                         
                         <!-- Attachments -->
-                        <div class="flex space-x-3 mb-4">
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 mb-4">
                             <% if (order.image_path) { %><a href="<%= order.image_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">Diseño</a><% } %>
-                            <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">PDF</a><% } %>
-                            <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">Doc</a><% } %>
+                            <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">DOC</a><% } %>
+                            <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">PDF Grupo</a><% } %>
+                            <% if (order.pdf_individual_path) { %><a href="<%= order.pdf_individual_path %>" target="_blank" class="text-xs text-ink-500 hover:text-brand-600 transition-colors flex items-center gap-1" onclick="event.stopPropagation()">PDF Individual</a><% } %>
                         </div>
                         <div class="mt-3 pt-3 border-t border-ink-300 relative group/obs">
                             <p class="text-[11px] text-ink-500 italic whitespace-pre-wrap" id="obs-text-<%= order.id %>"><%= order.observations || 'Sin observaciones...' %></p>

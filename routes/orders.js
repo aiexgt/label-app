@@ -11,7 +11,7 @@ router.get('/dashboard', async (req, res) => {
         const isAdmin = req.session.user.is_admin;
         const query = `
             SELECT o.*, 
-                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.height, l.width, l.tags, l.paper_type,
+                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.pdf_individual_path, l.height, l.width, l.tags, l.paper_type,
                    p.name as product_name, u.username as operator_username, q.name as quality_name
             FROM orders o
             JOIN labels l ON o.label_id = l.id
@@ -109,7 +109,7 @@ router.get('/history', async (req, res) => {
         
         let query = `
             SELECT o.*, 
-                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.height, l.width, l.tags, l.paper_type,
+                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.pdf_individual_path, l.height, l.width, l.tags, l.paper_type,
                    p.name as product_name, u.username as operator_username, q.name as quality_name
             FROM orders o
             JOIN labels l ON o.label_id = l.id

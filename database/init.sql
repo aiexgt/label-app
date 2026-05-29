@@ -2,7 +2,6 @@
 DROP TABLE IF EXISTS global_payments CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS labels CASCADE;
-DROP TABLE IF EXISTS printers CASCADE;
 DROP TABLE IF EXISTS qualities CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -31,12 +30,6 @@ CREATE TABLE qualities (
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE printers (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(50)
-);
-
 CREATE TABLE labels (
     id SERIAL PRIMARY KEY,
     product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
@@ -45,11 +38,11 @@ CREATE TABLE labels (
     image_path VARCHAR(255),
     word_path VARCHAR(255),
     pdf_path VARCHAR(255),
+    pdf_individual_path VARCHAR(255),
     quality_id INTEGER REFERENCES qualities(id) ON DELETE SET NULL,
     qty_per_sheet INTEGER NOT NULL DEFAULT 1,
     paper_type VARCHAR(50) DEFAULT 'Matte',
-    tags VARCHAR(255),
-    printer_id INTEGER REFERENCES printers(id) ON DELETE SET NULL
+    tags VARCHAR(255)
 );
 
 CREATE TABLE orders (
