@@ -1,0 +1,107 @@
+<%- include('../partials/header') %>
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Historial de Movimientos</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-6">
+    <!-- Filter Panel -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6">
+        <h2 class="text-sm font-medium text-ink-900 mb-4">Filtrar Historial</h2>
+        <form action="/inventory/history" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Fecha Desde</label>
+                <input type="date" name="start_date" value="<%= filters.start_date || '' %>" class="input-minimal">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Fecha Hasta</label>
+                <input type="date" name="end_date" value="<%= filters.end_date || '' %>" class="input-minimal">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Suministro</label>
+                <select name="supply_id" id="supply_id_filter" class="w-full font-medium">
+                    <option value="">Todos los suministros</option>
+                    <% supplies.forEach(s => { %>
+                        <option value="<%= s.id %>" <%= filters.supply_id == s.id ? 'selected' : '' %>><%= s.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 btn-minimal">Filtrar</button>
+                <a href="/inventory/history" class="flex-1 btn-outline text-center">Limpiar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Movements Log -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-0 overflow-hidden">
+        <div class="px-6 py-4 border-b border-ink-300">
+            <h2 class="text-sm font-medium text-ink-900">Bitácora de Transacciones</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-ink-300">
+                <thead class="bg-surface">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Fecha y Hora</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Suministro</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Movimiento</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Usuario</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Concepto / Motivo</th>
+                        <% if (user.is_admin) { %>
+                            <th class="px-6 py-3 text-right text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Acciones</th>
+                        <% } %>
+                    </tr>
+                </thead>
+                <tbody class="bg-panel divide-y divide-ink-300 text-xs">
+                    <% if (movements.length === 0) { %>
+                        <tr>
+                            <td colspan="<%= user.is_admin ? 6 : 5 %>" class="px-6 py-6 text-center text-ink-500 italic">No se encontraron movimientos con los filtros seleccionados.</td>
+                        </tr>
+                    <% } %>
+                    <% movements.forEach(m => { %>
+                        <tr class="hover:bg-surface transition-colors">
+                            <td class="px-6 py-3 whitespace-nowrap text-ink-500 font-mono">
+                                <%= new Date(m.created_at).toLocaleDateString('es-ES') %> a las <%= new Date(m.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap font-medium text-ink-900">
+                                <%= m.supply_name || 'Suministro Eliminado' %>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap">
+                                <% if (m.type === 'entrada') { %>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50">+<%= m.quantity %></span>
+                                <% } else { %>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50">-<%= m.quantity %></span>
+                                <% } %>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-ink-500">
+                                👤 <%= m.username || 'Desconocido' %>
+                            </td>
+                            <td class="px-6 py-3 text-ink-700 max-w-xs truncate" title="<%= m.concept %>">
+                                <%= m.concept || '-' %>
+                            </td>
+                            <% if (user.is_admin) { %>
+                                <td class="px-6 py-3 whitespace-nowrap text-right text-xs">
+                                    <form action="/inventory/history/<%= m.id %>/delete" method="POST" class="ajax-delete-form inline-block" onsubmit="return confirm('¿Seguro que deseas borrar este registro de historial? Esto NO afectará la cantidad actual de stock.');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
+                                    </form>
+                                </td>
+                            <% } %>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('supply_id_filter')) {
+            new TomSelect("#supply_id_filter", {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "Todos los suministros"
+            });
+        }
+    });
+</script>
+<%- include('../partials/footer') %>
