@@ -19,7 +19,7 @@ router.get('/dashboard', async (req, res) => {
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
             WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at) = CURRENT_DATE)
-            ORDER BY o.position ASC, o.id DESC
+            ORDER BY o.position ASC, o.id ASC
         `;
         const result = await pool.query(query, [isAdmin]);
         const orders = result.rows;
@@ -70,12 +70,16 @@ router.post('/orders', isNotCustomer, async (req, res) => {
         const qty_per_sheet = label.qty_per_sheet || 1;
         const total_sheets = Math.ceil(quantity / qty_per_sheet);
 
+        // Fetch max position to place new order at the bottom
+        const posQuery = await pool.query("SELECT COALESCE(MAX(position), 0) as max_pos FROM orders WHERE status = 'pendiente'");
+        const nextPosition = posQuery.rows[0].max_pos + 1;
+
         const insertQuery = `
-            INSERT INTO orders (label_id, quantity, total_sheets, observations)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO orders (label_id, quantity, total_sheets, observations, position)
+            VALUES ($1, $2, $3, $4, $5)
         `;
         
-        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations]);
+        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations, nextPosition]);
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
