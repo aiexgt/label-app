@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { isAuthenticated, isAdmin, isNotCustomer } = require('../middleware/auth');
 
 router.use(isAuthenticated);
 
@@ -24,13 +24,13 @@ router.get('/dashboard', async (req, res) => {
         const result = await pool.query(query, [isAdmin]);
         const orders = result.rows;
 
-        // Group by status
+        // Group by status (for customers, terminados is filtered to last 48 hours)
         const board = {
             'pendiente': orders.filter(o => o.status === 'pendiente'),
             'imprimiendo': orders.filter(o => o.status === 'imprimiendo'),
             'impreso': orders.filter(o => o.status === 'impreso'),
             'cortando': orders.filter(o => o.status === 'cortando'),
-            'terminado': orders.filter(o => o.status === 'terminado'),
+            'terminado': orders.filter(o => o.status === 'terminado' && (!req.session.user.is_customer || (Date.now() - new Date(o.updated_at).getTime()) <= 48 * 60 * 60 * 1000)),
             'entregado': orders.filter(o => o.status === 'entregado')
         };
 
@@ -42,7 +42,7 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // New Order Form
-router.get('/orders/new', async (req, res) => {
+router.get('/orders/new', isNotCustomer, async (req, res) => {
     try {
         // Fetch labels to select from
         const labelsResult = await pool.query(`
@@ -58,7 +58,7 @@ router.get('/orders/new', async (req, res) => {
 });
 
 // Process New Order
-router.post('/orders', async (req, res) => {
+router.post('/orders', isNotCustomer, async (req, res) => {
     const { label_id, quantity, observations } = req.body;
     
     try {
@@ -92,6 +92,59 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
             return res.json({ success: true });
         }
         res.redirect('/dashboard');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Delivered Orders History View
+router.get('/history', async (req, res) => {
+    try {
+        const { date, hour, product_id } = req.query;
+        
+        let query = `
+            SELECT o.*, 
+                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.height, l.width, l.tags, l.paper_type,
+                   p.name as product_name, u.username as operator_username, q.name as quality_name
+            FROM orders o
+            JOIN labels l ON o.label_id = l.id
+            JOIN products p ON l.product_id = p.id
+            LEFT JOIN users u ON o.operator_id = u.id
+            LEFT JOIN qualities q ON l.quality_id = q.id
+            WHERE o.status = 'entregado'
+        `;
+        
+        const params = [];
+        let paramIndex = 1;
+        
+        if (date) {
+            query += ` AND DATE(o.updated_at) = $${paramIndex++}`;
+            params.push(date);
+        }
+        
+        if (hour) {
+            query += ` AND TO_CHAR(o.updated_at, 'HH24:MI') LIKE $${paramIndex++}`;
+            params.push(`${hour}%`);
+        }
+        
+        if (product_id) {
+            query += ` AND l.product_id = $${paramIndex++}`;
+            params.push(product_id);
+        }
+        
+        query += ` ORDER BY o.updated_at DESC`;
+        
+        const result = await pool.query(query, params);
+        
+        // Fetch all products for the filter dropdown
+        const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
+        
+        res.render('history', { 
+            orders: result.rows, 
+            products: productsResult.rows,
+            filters: { date, hour, product_id }
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

@@ -1,0 +1,100 @@
+<%- include('partials/header') %>
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Historial de Pedidos Entregados</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-6">
+    <!-- Filter Panel -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6">
+        <h2 class="text-sm font-medium text-ink-900 mb-4">Filtrar Pedidos</h2>
+        <form action="/history" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Día (Fecha de entrega)</label>
+                <input type="date" name="date" value="<%= filters.date || '' %>" class="input-minimal">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Hora de entrega</label>
+                <input type="time" name="hour" value="<%= filters.hour || '' %>" class="input-minimal">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-ink-500 mb-1">Tipo de Etiqueta (Producto)</label>
+                <select name="product_id" id="product_id_filter" class="w-full font-medium">
+                    <option value="">Todos los productos</option>
+                    <% products.forEach(p => { %>
+                        <option value="<%= p.id %>" <%= filters.product_id == p.id ? 'selected' : '' %>><%= p.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 btn-minimal">Filtrar</button>
+                <a href="/history" class="flex-1 btn-outline text-center">Limpiar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- History Directory Panel -->
+    <div class="panel p-0 overflow-hidden bg-panel border border-ink-300 rounded-lg shadow-subtle">
+        <div class="px-6 py-4 border-b border-ink-300">
+            <h3 class="text-sm font-medium text-ink-900">Listado de Entregas</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-ink-300">
+                <thead class="bg-surface">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Producto / Detalle</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Dimensiones / Hojas</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Operador</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Fecha y Hora de Entrega</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Archivos</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-panel divide-y divide-ink-300">
+                    <% if (orders.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas con los filtros aplicados.</td>
+                        </tr>
+                    <% } %>
+                    <% orders.forEach(order => { %>
+                        <tr class="hover:bg-surface transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= order.id %></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-ink-900"><%= order.product_name %></div>
+                                <div class="text-xs text-ink-500"><%= order.quality_name || '-' %> &bull; <%= order.paper_type || 'Matte' %></div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
+                                <%= order.height %>x<%= order.width %>cm<br><%= order.quantity %> unid. (<%= order.total_sheets %> Hojas)
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
+                                👤 <%= order.operator_username || 'Desconocido' %>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
+                                <%= new Date(order.updated_at).toLocaleDateString('es-ES') %> a las <%= new Date(order.updated_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex space-x-2.5 text-[11px] text-brand-600">
+                                    <% if (order.image_path) { %><a href="<%= order.image_path %>" target="_blank" class="hover:underline">Diseño</a><% } %>
+                                    <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="hover:underline">DOC</a><% } %>
+                                    <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="hover:underline">PDF</a><% } %>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('product_id_filter')) {
+            new TomSelect("#product_id_filter", {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "Todos los productos"
+            });
+        }
+    });
+</script>
+<%- include('partials/footer') %>

@@ -23,7 +23,8 @@ router.post('/login', async (req, res) => {
                 req.session.user = {
                     id: user.id,
                     username: user.username,
-                    is_admin: user.is_admin
+                    is_admin: user.is_admin,
+                    is_customer: user.is_customer
                 };
                 return res.redirect('/dashboard');
             }

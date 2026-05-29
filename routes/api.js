@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated } = require('../middleware/auth');
+const { isAuthenticated, isNotCustomer } = require('../middleware/auth');
 
-router.use(isAuthenticated);
+router.use(isAuthenticated, isNotCustomer);
 
 // API endpoint to update order status (called by SortableJS)
 router.post('/orders/:id/status', async (req, res) => {

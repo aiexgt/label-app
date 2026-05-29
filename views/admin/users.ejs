@@ -15,9 +15,13 @@
                 <label class="block text-xs font-medium text-ink-900 mb-1">Contraseña</label>
                 <input type="password" name="password" required class="input-minimal" placeholder="••••••••">
             </div>
-            <div class="flex items-center gap-2 pt-1">
-                <input type="checkbox" name="is_admin" id="is_admin" class="rounded border-ink-300 text-brand-500 focus:ring-brand-500">
-                <label for="is_admin" class="text-xs text-ink-700 font-medium">Dar permisos de Administrador</label>
+            <div>
+                <label class="block text-xs font-medium text-ink-900 mb-1">Rol / Tipo de Usuario</label>
+                <select name="role" required class="input-minimal">
+                    <option value="operator">Operador</option>
+                    <option value="admin">Administrador</option>
+                    <option value="customer">Cliente</option>
+                </select>
             </div>
             <div class="pt-2">
                 <button type="submit" class="w-full btn-minimal">Crear Usuario</button>
@@ -32,13 +36,19 @@
             <li class="py-4 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-ink-900"><%= u.username %></p>
-                    <p class="text-[11px] text-ink-500 uppercase tracking-wider"><%= u.is_admin ? 'Administrador' : 'Operador' %></p>
+                    <p class="text-[11px] text-ink-500 uppercase tracking-wider">
+                        <%= u.is_admin ? 'Administrador' : (u.is_customer ? 'Cliente' : 'Operador') %>
+                    </p>
                 </div>
-                <form action="/admin/users/<%= u.id %>/toggle_admin" method="POST">
-                    <button type="submit" class="text-xs font-medium <%= u.is_admin ? 'text-amber-600 hover:text-amber-700' : 'text-brand-600 hover:text-brand-700' %> transition-colors">
-                        <%= u.is_admin ? 'Remover Admin' : 'Hacer Admin' %>
-                    </button>
-                </form>
+                <% if (u.id !== user.id) { %>
+                    <form action="/admin/users/<%= u.id %>/role" method="POST" class="inline-flex">
+                        <select name="role" onchange="this.form.submit()" class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-2 focus:ring-0 focus:border-brand-500 transition-colors">
+                            <option value="operator" <%= !u.is_admin && !u.is_customer ? 'selected' : '' %>>Operador</option>
+                            <option value="admin" <%= u.is_admin ? 'selected' : '' %>>Administrador</option>
+                            <option value="customer" <%= u.is_customer ? 'selected' : '' %>>Cliente</option>
+                        </select>
+                    </form>
+                <% } %>
             </li>
         <% }) %>
     </ul>

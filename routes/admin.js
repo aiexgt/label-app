@@ -282,7 +282,7 @@ router.post('/labels/:id/delete', async (req, res) => {
 // ==========================================
 router.get('/users', async (req, res) => {
     try {
-        const usersResult = await pool.query('SELECT id, username, is_admin FROM users ORDER BY id');
+        const usersResult = await pool.query('SELECT id, username, is_admin, is_customer FROM users ORDER BY id');
         res.render('admin/users', { users: usersResult.rows });
     } catch (err) {
         console.error(err);
@@ -292,13 +292,13 @@ router.get('/users', async (req, res) => {
 
 // Create User
 router.post('/users', async (req, res) => {
-    const { username, password, is_admin } = req.body;
+    const { username, password, role } = req.body;
     try {
         const bcrypt = require('bcrypt');
         const hash = await bcrypt.hash(password, 10);
         await pool.query(
-            'INSERT INTO users (username, password_hash, is_admin) VALUES ($1, $2, $3)',
-            [username, hash, is_admin === 'on']
+            'INSERT INTO users (username, password_hash, is_admin, is_customer) VALUES ($1, $2, $3, $4)',
+            [username, hash, role === 'admin', role === 'customer']
         );
         res.redirect('/admin/users');
     } catch (err) {
@@ -307,11 +307,18 @@ router.post('/users', async (req, res) => {
     }
 });
 
-// Update User Role / Delete User
-router.post('/users/:id/toggle_admin', async (req, res) => {
+// Update User Role
+router.post('/users/:id/role', async (req, res) => {
     const { id } = req.params;
+    const { role } = req.body;
     try {
-        await pool.query('UPDATE users SET is_admin = NOT is_admin WHERE id = $1 AND id != $2', [id, req.session.user.id]);
+        if (parseInt(id) === req.session.user.id) {
+            return res.status(400).send('No puedes cambiar tu propio rol');
+        }
+        await pool.query(
+            'UPDATE users SET is_admin = $1, is_customer = $2 WHERE id = $3',
+            [role === 'admin', role === 'customer', id]
+        );
         res.redirect('/admin/users');
     } catch (err) {
         console.error(err);

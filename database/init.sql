@@ -17,7 +17,8 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    is_admin BOOLEAN DEFAULT FALSE
+    is_admin BOOLEAN DEFAULT FALSE,
+    is_customer BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE products (
@@ -68,6 +69,11 @@ CREATE TABLE orders (
 -- Password is 'LabelAdmin2026!' (hashed with bcrypt, 10 rounds)
 INSERT INTO users (username, password_hash, is_admin)
 VALUES ('admin', '$2b$10$sUHPKWZ3rULGtKems6M4Y.5cVYrI8FI3It8JISCvgf.7QaLthHAYu', TRUE);
+
+-- Insert Default Customer User
+-- Password is 'LabelAdmin2026!' (hashed with bcrypt, 10 rounds)
+INSERT INTO users (username, password_hash, is_customer)
+VALUES ('cliente', '$2b$10$sUHPKWZ3rULGtKems6M4Y.5cVYrI8FI3It8JISCvgf.7QaLthHAYu', TRUE);
 
 -- Sample Data (Solo Calidades Base)
 INSERT INTO qualities (name) VALUES ('Premium'), ('Standard');
