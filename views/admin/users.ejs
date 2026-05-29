@@ -33,22 +33,30 @@
         <h2 class="text-sm font-medium text-ink-900 mb-4 pb-4 border-b border-ink-300">Roles y Permisos</h2>
     <ul class="divide-y divide-ink-300">
         <% users.forEach(u => { %>
-            <li class="py-4 flex items-center justify-between">
+            <li class="py-4 flex items-center justify-between group">
                 <div>
                     <p class="text-sm font-medium text-ink-900"><%= u.username %></p>
                     <p class="text-[11px] text-ink-500 uppercase tracking-wider">
                         <%= u.is_admin ? 'Administrador' : (u.is_customer ? 'Cliente' : 'Operador') %>
                     </p>
                 </div>
-                <% if (u.id !== user.id) { %>
-                    <form action="/admin/users/<%= u.id %>/role" method="POST" class="inline-flex">
-                        <select name="role" onchange="this.form.submit()" class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-2 focus:ring-0 focus:border-brand-500 transition-colors">
-                            <option value="operator" <%= !u.is_admin && !u.is_customer ? 'selected' : '' %>>Operador</option>
-                            <option value="admin" <%= u.is_admin ? 'selected' : '' %>>Administrador</option>
-                            <option value="customer" <%= u.is_customer ? 'selected' : '' %>>Cliente</option>
-                        </select>
-                    </form>
-                <% } %>
+                <div class="flex items-center gap-3">
+                    <% if (u.id !== user.id) { %>
+                        <form action="/admin/users/<%= u.id %>/role" method="POST" class="inline-flex">
+                            <select name="role" onchange="this.form.submit()" class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-2 focus:ring-0 focus:border-brand-500 transition-colors">
+                                <option value="operator" <%= !u.is_admin && !u.is_customer ? 'selected' : '' %>>Operador</option>
+                                <option value="admin" <%= u.is_admin ? 'selected' : '' %>>Administrador</option>
+                                <option value="customer" <%= u.is_customer ? 'selected' : '' %>>Cliente</option>
+                            </select>
+                        </form>
+                    <% } %>
+                    <a href="/admin/users/<%= u.id %>/edit" class="text-xs font-medium text-brand-600 hover:text-brand-800 transition-colors">Editar</a>
+                    <% if (u.id !== user.id) { %>
+                        <form action="/admin/users/<%= u.id %>/delete" method="POST" class="ajax-delete-form inline-block" onsubmit="return confirm('¿Seguro que deseas eliminar a este usuario?');">
+                            <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
+                        </form>
+                    <% } %>
+                </div>
             </li>
         <% }) %>
     </ul>

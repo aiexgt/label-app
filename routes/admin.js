@@ -326,4 +326,75 @@ router.post('/users/:id/role', async (req, res) => {
     }
 });
 
+// Edit User Page (GET)
+router.get('/users/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const userResult = await pool.query('SELECT id, username, is_admin, is_customer FROM users WHERE id = $1', [id]);
+        if (userResult.rows.length === 0) return res.status(404).send('Usuario no encontrado');
+        res.render('admin/users_edit', { targetUser: userResult.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Edit User Action (POST)
+router.post('/users/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { username, password, role } = req.body;
+    try {
+        const bcrypt = require('bcrypt');
+        
+        let isSelf = (parseInt(id) === req.session.user.id);
+        let finalAdmin = isSelf ? true : (role === 'admin');
+        let finalCustomer = isSelf ? false : (role === 'customer');
+        
+        let query = 'UPDATE users SET username = $1, is_admin = $2, is_customer = $3';
+        const params = [username, finalAdmin, finalCustomer];
+        let paramIndex = 4;
+        
+        if (password && password.trim() !== '') {
+            const hash = await bcrypt.hash(password, 10);
+            query += `, password_hash = $${paramIndex++}`;
+            params.push(hash);
+        }
+        
+        query += ` WHERE id = $${paramIndex}`;
+        params.push(id);
+        
+        await pool.query(query, params);
+        
+        // If editing self, update session
+        if (isSelf) {
+            req.session.user.username = username;
+            req.session.user.is_admin = finalAdmin;
+            req.session.user.is_customer = finalCustomer;
+        }
+        
+        res.redirect('/admin/users');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al editar usuario (el nombre de usuario ya puede estar en uso)');
+    }
+});
+
+// Delete User Action (POST)
+router.post('/users/:id/delete', async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (parseInt(id) === req.session.user.id) {
+            return res.status(400).send('No puedes eliminar tu propio usuario');
+        }
+        await pool.query('DELETE FROM users WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true });
+        }
+        res.redirect('/admin/users');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error');
+    }
+});
+
 module.exports = router;
