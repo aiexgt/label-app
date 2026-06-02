@@ -60,7 +60,7 @@
                     <% movements.forEach(m => { %>
                         <tr class="hover:bg-surface transition-colors">
                             <td class="px-6 py-3 whitespace-nowrap text-ink-500 font-mono">
-                                <%= new Date(m.created_at).toLocaleDateString('es-ES') %> a las <%= new Date(m.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
+                                <%= new Date(m.created_at).toLocaleDateString('es-ES', { timeZone: 'America/Guatemala' }) %> a las <%= new Date(m.created_at).toLocaleTimeString('es-ES', { timeZone: 'America/Guatemala', hour: '2-digit', minute:'2-digit' }) %>
                             </td>
                             <td class="px-6 py-3 whitespace-nowrap font-medium text-ink-900">
                                 <%= m.supply_name || 'Suministro Eliminado' %>

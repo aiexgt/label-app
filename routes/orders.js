@@ -105,22 +105,34 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
 // Delivered Orders History View
 router.get('/history', async (req, res) => {
     try {
-        const { start_date, end_date, product_id, export: exportFormat } = req.query;
+        const { start_date, end_date, product_id, export: exportFormat, group_by } = req.query;
+        const isGrouped = group_by === 'true';
         
-        let query = `
-            SELECT o.*, 
-                   l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.pdf_individual_path, l.height, l.width, l.tags, l.paper_type,
-                   p.name as product_name, u.username as operator_username, q.name as quality_name
-            FROM orders o
-            JOIN labels l ON o.label_id = l.id
-            JOIN products p ON l.product_id = p.id
-            LEFT JOIN users u ON o.operator_id = u.id
-            LEFT JOIN qualities q ON l.quality_id = q.id
-            WHERE o.status = 'entregado'
-        `;
-        
-        const params = [];
+        let query = '';
+        let params = [];
         let paramIndex = 1;
+        
+        if (isGrouped) {
+            query = `
+                SELECT p.name as product_name, SUM(o.quantity)::integer as total_quantity
+                FROM orders o
+                JOIN labels l ON o.label_id = l.id
+                JOIN products p ON l.product_id = p.id
+                WHERE o.status = 'entregado'
+            `;
+        } else {
+            query = `
+                SELECT o.*, 
+                       l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.pdf_individual_path, l.height, l.width, l.tags, l.paper_type,
+                       p.name as product_name, u.username as operator_username, q.name as quality_name
+                FROM orders o
+                JOIN labels l ON o.label_id = l.id
+                JOIN products p ON l.product_id = p.id
+                LEFT JOIN users u ON o.operator_id = u.id
+                LEFT JOIN qualities q ON l.quality_id = q.id
+                WHERE o.status = 'entregado'
+            `;
+        }
         
         if (start_date) {
             query += ` AND DATE(o.updated_at) >= $${paramIndex++}`;
@@ -137,7 +149,11 @@ router.get('/history', async (req, res) => {
             params.push(product_id);
         }
         
-        query += ` ORDER BY o.updated_at DESC`;
+        if (isGrouped) {
+            query += ` GROUP BY p.name ORDER BY total_quantity DESC`;
+        } else {
+            query += ` ORDER BY o.updated_at DESC`;
+        }
         
         const result = await pool.query(query, params);
         
@@ -145,40 +161,52 @@ router.get('/history', async (req, res) => {
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', 'attachment; filename=historial_entregados.csv');
             res.write('\uFEFF'); // BOM for UTF-8 in Excel
-            res.write('ID,Etiqueta,Tags,Cantidad,Fecha Ingreso,Fecha Entrega,Diseño URL\n');
             
-            result.rows.forEach(order => {
-                const escapeCsv = (str) => {
-                    if (str === null || str === undefined) return '';
-                    const cleanStr = String(str).replace(/"/g, '""');
-                    return `"${cleanStr}"`;
-                };
+            const escapeCsv = (str) => {
+                if (str === null || str === undefined) return '';
+                const cleanStr = String(str).replace(/"/g, '""');
+                return `"${cleanStr}"`;
+            };
+            
+            if (isGrouped) {
+                res.write('Etiqueta,Cantidad Total\n');
+                result.rows.forEach(row => {
+                    res.write([
+                        escapeCsv(row.product_name),
+                        row.total_quantity
+                    ].join(',') + '\n');
+                });
+            } else {
+                res.write('ID,Etiqueta,Tags,Cantidad,Fecha Ingreso,Fecha Entrega,Diseño URL\n');
                 
-                const orderDate = new Date(order.order_date).toLocaleString('es-ES');
-                const deliveryDate = new Date(order.updated_at).toLocaleString('es-ES');
-                const designUrl = order.image_path ? `${req.protocol}://${req.get('host')}${order.image_path}` : 'N/A';
-                
-                res.write([
-                    order.id,
-                    escapeCsv(order.product_name),
-                    escapeCsv(order.tags),
-                    order.quantity,
-                    escapeCsv(orderDate),
-                    escapeCsv(deliveryDate),
-                    escapeCsv(designUrl)
-                ].join(',') + '\n');
-            });
+                result.rows.forEach(order => {
+                    const orderDate = new Date(order.order_date).toLocaleString('es-ES', { timeZone: 'America/Guatemala' });
+                    const deliveryDate = new Date(order.updated_at).toLocaleString('es-ES', { timeZone: 'America/Guatemala' });
+                    const designUrl = order.image_path ? `${req.protocol}://${req.get('host')}${order.image_path}` : 'N/A';
+                    
+                    res.write([
+                        order.id,
+                        escapeCsv(order.product_name),
+                        escapeCsv(order.tags),
+                        order.quantity,
+                        escapeCsv(orderDate),
+                        escapeCsv(deliveryDate),
+                        escapeCsv(designUrl)
+                    ].join(',') + '\n');
+                });
+            }
             return res.end();
         }
 
         // Fetch all products for the filter dropdown
         const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
         
-        const filters = { start_date, end_date, product_id };
+        const filters = { start_date, end_date, product_id, group_by };
         const queryParams = new URLSearchParams();
         if (start_date) queryParams.set('start_date', start_date);
         if (end_date) queryParams.set('end_date', end_date);
         if (product_id) queryParams.set('product_id', product_id);
+        if (isGrouped) queryParams.set('group_by', 'true');
         const queryString = queryParams.toString();
 
         res.render('history', { 

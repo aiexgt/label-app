@@ -3,6 +3,14 @@
     <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Historial de Pedidos Entregados</h1>
 </div>
 
+<%
+  let individualQs = [];
+  if (filters.start_date) individualQs.push('start_date=' + filters.start_date);
+  if (filters.end_date) individualQs.push('end_date=' + filters.end_date);
+  if (filters.product_id) individualQs.push('product_id=' + filters.product_id);
+  let individualQueryString = individualQs.join('&');
+%>
+
 <div class="grid grid-cols-1 gap-6">
     <!-- Filter Panel -->
     <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6">
@@ -26,9 +34,20 @@
                 </select>
             </div>
             <div class="flex gap-2 flex-wrap">
-                <button type="submit" class="flex-1 btn-minimal !py-2">Filtrar</button>
-                <a href="/history" class="flex-1 btn-outline text-center !py-2">Limpiar</a>
-                <a href="/history?<%= queryString %>&export=csv" class="flex-1 btn-minimal !bg-emerald-600 hover:!bg-emerald-700 text-center !py-2 flex items-center justify-center gap-1.5" title="Exportar resultados a CSV">
+                <button type="submit" class="flex-grow btn-minimal !py-2">Filtrar</button>
+                <a href="/history" class="flex-grow btn-outline text-center !py-2">Limpiar</a>
+                
+                <% if (filters.group_by === 'true') { %>
+                    <a href="/history?<%= individualQueryString %>" class="flex-grow btn-minimal !bg-amber-600 hover:!bg-amber-700 text-center !py-2" title="Mostrar listado individual de pedidos">
+                        📄 Vista Individual
+                    </a>
+                <% } else { %>
+                    <a href="/history?<%= individualQueryString ? individualQueryString + '&' : '' %>group_by=true" class="flex-grow btn-minimal !bg-indigo-600 hover:!bg-indigo-700 text-center !py-2" title="Agrupar pedidos entregados por etiquetas">
+                        📊 Agrupar por etiquetas
+                    </a>
+                <% } %>
+                
+                <a href="/history?<%= queryString %>&export=csv" class="flex-grow btn-minimal !bg-emerald-600 hover:!bg-emerald-700 text-center !py-2 flex items-center justify-center gap-1.5" title="Exportar resultados a CSV">
                     📥 Exportar CSV
                 </a>
             </div>
@@ -38,66 +57,98 @@
     <!-- History Directory Panel -->
     <div class="panel p-0 overflow-hidden bg-panel border border-ink-300 rounded-lg shadow-subtle">
         <div class="px-6 py-4 border-b border-ink-300">
-            <h3 class="text-sm font-medium text-ink-900">Listado de Entregas</h3>
+            <h3 class="text-sm font-medium text-ink-900">
+                <%= filters.group_by === 'true' ? 'Consolidado de Cantidades por Etiqueta' : 'Listado de Entregas' %>
+            </h3>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-ink-300" id="history-table">
-                <thead class="bg-surface">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(0)">
-                            ID <span id="sort-arrow-0" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(1)">
-                            Etiqueta <span id="sort-arrow-1" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(2)">
-                            Cantidad de Etiquetas <span id="sort-arrow-2" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(3)">
-                            Fecha Ingreso <span id="sort-arrow-3" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(4)">
-                            Fecha Entrega <span id="sort-arrow-4" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(5)">
-                            Diseño <span id="sort-arrow-5" class="ml-1 text-[9px] text-ink-400">↕</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-panel divide-y divide-ink-300">
-                    <% if (orders.length === 0) { %>
+                <% if (filters.group_by === 'true') { %>
+                    <thead class="bg-surface">
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas con los filtros aplicados.</td>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTableGrouped(0)">
+                                Etiqueta <span id="sort-arrow-0" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTableGrouped(1)">
+                                Cantidad Total <span id="sort-arrow-1" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
                         </tr>
-                    <% } %>
-                    <% orders.forEach(order => { %>
-                        <tr class="hover:bg-surface transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= order.id %></td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-ink-900"><%= order.product_name %></div>
-                                <% if (order.tags) { %>
-                                    <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= order.tags %></div>
-                                <% } %>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-ink-900">
-                                <%= order.quantity %>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
-                                <%= new Date(order.order_date).toLocaleDateString('es-ES') %> a las <%= new Date(order.order_date).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
-                                <%= new Date(order.updated_at).toLocaleDateString('es-ES') %> a las <%= new Date(order.updated_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <% if (order.image_path) { %>
-                                    <a href="<%= order.image_path %>" target="_blank" class="text-xs text-brand-600 hover:text-brand-850 hover:underline transition-colors font-medium">Diseño</a>
-                                <% } else { %>
-                                    <span class="text-xs text-ink-400">-</span>
-                                <% } %>
-                            </td>
+                    </thead>
+                    <tbody class="bg-panel divide-y divide-ink-300">
+                        <% if (orders.length === 0) { %>
+                            <tr>
+                                <td colspan="2" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas agrupadas con los filtros aplicados.</td>
+                            </tr>
+                        <% } %>
+                        <% orders.forEach(row => { %>
+                            <tr class="hover:bg-surface transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-ink-900">
+                                    <%= row.product_name %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-ink-900">
+                                    <%= row.total_quantity %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                <% } else { %>
+                    <thead class="bg-surface">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(0)">
+                                ID <span id="sort-arrow-0" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(1)">
+                                Etiqueta <span id="sort-arrow-1" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(2)">
+                                Cantidad de Etiquetas <span id="sort-arrow-2" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(3)">
+                                Fecha Ingreso <span id="sort-arrow-3" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(4)">
+                                Fecha Entrega <span id="sort-arrow-4" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(5)">
+                                Diseño <span id="sort-arrow-5" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
                         </tr>
-                    <% }) %>
-                </tbody>
+                    </thead>
+                    <tbody class="bg-panel divide-y divide-ink-300">
+                        <% if (orders.length === 0) { %>
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas con los filtros aplicados.</td>
+                            </tr>
+                        <% } %>
+                        <% orders.forEach(order => { %>
+                            <tr class="hover:bg-surface transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= order.id %></td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-ink-900"><%= order.product_name %></div>
+                                    <% if (order.tags) { %>
+                                        <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= order.tags %></div>
+                                    <% } %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-ink-900">
+                                    <%= order.quantity %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
+                                    <%= new Date(order.order_date).toLocaleDateString('es-ES', { timeZone: 'America/Guatemala' }) %> a las <%= new Date(order.order_date).toLocaleTimeString('es-ES', { timeZone: 'America/Guatemala', hour: '2-digit', minute:'2-digit' }) %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
+                                    <%= new Date(order.updated_at).toLocaleDateString('es-ES', { timeZone: 'America/Guatemala' }) %> a las <%= new Date(order.updated_at).toLocaleTimeString('es-ES', { timeZone: 'America/Guatemala', hour: '2-digit', minute:'2-digit' }) %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <% if (order.image_path) { %>
+                                        <a href="<%= order.image_path %>" target="_blank" class="text-xs text-brand-600 hover:text-brand-850 hover:underline transition-colors font-medium">Diseño</a>
+                                    <% } else { %>
+                                        <span class="text-xs text-ink-400">-</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                <% } %>
             </table>
         </div>
     </div>
@@ -111,55 +162,82 @@
         const tbody = table.querySelector("tbody");
         const rows = Array.from(tbody.querySelectorAll("tr"));
         
-        // Evitar ordenar si la tabla está vacía
         if (rows.length === 1 && rows[0].cells.length === 1) return;
         
-        // Obtener dirección de ordenamiento actual (por defecto asc)
         let dir = sortDirections[colIndex] === 'asc' ? 'desc' : 'asc';
-        sortDirections = {}; // Reiniciar otras
+        sortDirections = {};
         sortDirections[colIndex] = dir;
         
-        // Reiniciar todos los indicadores
         for (let i = 0; i <= 5; i++) {
             const arrow = document.getElementById("sort-arrow-" + i);
             if (arrow) arrow.textContent = "↕";
         }
         
-        // Colocar indicador en la columna ordenada
         document.getElementById("sort-arrow-" + colIndex).textContent = dir === 'asc' ? "▲" : "▼";
         
         rows.sort((a, b) => {
             let valA = getCellValue(a, colIndex);
             let valB = getCellValue(b, colIndex);
             
-            // Ordenar dependiendo de la columna
-            if (colIndex === 0) { // ID
+            if (colIndex === 0) {
                 const idA = parseInt(valA.replace('#', '')) || 0;
                 const idB = parseInt(valB.replace('#', '')) || 0;
                 return dir === 'asc' ? idA - idB : idB - idA;
-            } else if (colIndex === 2) { // Cantidad
+            } else if (colIndex === 2) {
                 const qtyA = parseFloat(valA) || 0;
                 const qtyB = parseFloat(valB) || 0;
                 return dir === 'asc' ? qtyA - qtyB : qtyB - qtyA;
-            } else if (colIndex === 3 || colIndex === 4) { // Fechas
+            } else if (colIndex === 3 || colIndex === 4) {
                 const dateA = parseCustomDate(valA);
                 const dateB = parseCustomDate(valB);
                 return dir === 'asc' ? dateA - dateB : dateB - dateA;
-            } else { // Cadenas de texto
+            } else {
                 return dir === 'asc'
                     ? valA.localeCompare(valB)
                     : valB.localeCompare(valA);
             }
         });
         
-        // Volver a añadir las filas ordenadas
+        tbody.innerHTML = "";
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function sortTableGrouped(colIndex) {
+        const table = document.getElementById("history-table");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        if (rows.length === 1 && rows[0].cells.length === 1) return;
+        
+        let dir = sortDirections[colIndex] === 'asc' ? 'desc' : 'asc';
+        sortDirections = {};
+        sortDirections[colIndex] = dir;
+        
+        for (let i = 0; i <= 1; i++) {
+            const arrow = document.getElementById("sort-arrow-" + i);
+            if (arrow) arrow.textContent = "↕";
+        }
+        
+        document.getElementById("sort-arrow-" + colIndex).textContent = dir === 'asc' ? "▲" : "▼";
+        
+        rows.sort((a, b) => {
+            let valA = a.cells[colIndex].textContent.trim();
+            let valB = b.cells[colIndex].textContent.trim();
+            
+            if (colIndex === 1) {
+                return dir === 'asc' ? parseFloat(valA) - parseFloat(valB) : parseFloat(valB) - parseFloat(valA);
+            } else {
+                return dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+        });
+        
         tbody.innerHTML = "";
         rows.forEach(row => tbody.appendChild(row));
     }
 
     function getCellValue(row, colIndex) {
         const cell = row.cells[colIndex];
-        if (colIndex === 1) { // Etiqueta (nombre de producto)
+        if (colIndex === 1) {
             const mainDiv = cell.querySelector("div");
             return mainDiv ? mainDiv.textContent.trim() : cell.textContent.trim();
         }
@@ -167,10 +245,8 @@
     }
 
     function parseCustomDate(dateStr) {
-        // Formato esperado: "dd/mm/aaaa a las hh:mm"
         const match = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4})\s+a las\s+(\d{2}):(\d{2})/);
         if (match) {
-            // new Date(year, monthIndex, day, hours, minutes)
             return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]), parseInt(match[4]), parseInt(match[5]));
         }
         return new Date(0);
