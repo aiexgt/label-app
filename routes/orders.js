@@ -105,7 +105,7 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
 // Delivered Orders History View
 router.get('/history', async (req, res) => {
     try {
-        const { date, hour, product_id } = req.query;
+        const { start_date, end_date, product_id, export: exportFormat } = req.query;
         
         let query = `
             SELECT o.*, 
@@ -122,14 +122,14 @@ router.get('/history', async (req, res) => {
         const params = [];
         let paramIndex = 1;
         
-        if (date) {
-            query += ` AND DATE(o.updated_at) = $${paramIndex++}`;
-            params.push(date);
+        if (start_date) {
+            query += ` AND DATE(o.updated_at) >= $${paramIndex++}`;
+            params.push(start_date);
         }
         
-        if (hour) {
-            query += ` AND TO_CHAR(o.updated_at, 'HH24:MI') LIKE $${paramIndex++}`;
-            params.push(`${hour}%`);
+        if (end_date) {
+            query += ` AND DATE(o.updated_at) <= $${paramIndex++}`;
+            params.push(end_date);
         }
         
         if (product_id) {
@@ -141,13 +141,51 @@ router.get('/history', async (req, res) => {
         
         const result = await pool.query(query, params);
         
+        if (exportFormat === 'csv') {
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', 'attachment; filename=historial_entregados.csv');
+            res.write('\uFEFF'); // BOM for UTF-8 in Excel
+            res.write('ID,Etiqueta,Tags,Cantidad,Fecha Ingreso,Fecha Entrega,Diseño URL\n');
+            
+            result.rows.forEach(order => {
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '';
+                    const cleanStr = String(str).replace(/"/g, '""');
+                    return `"${cleanStr}"`;
+                };
+                
+                const orderDate = new Date(order.order_date).toLocaleString('es-ES');
+                const deliveryDate = new Date(order.updated_at).toLocaleString('es-ES');
+                const designUrl = order.image_path ? `${req.protocol}://${req.get('host')}${order.image_path}` : 'N/A';
+                
+                res.write([
+                    order.id,
+                    escapeCsv(order.product_name),
+                    escapeCsv(order.tags),
+                    order.quantity,
+                    escapeCsv(orderDate),
+                    escapeCsv(deliveryDate),
+                    escapeCsv(designUrl)
+                ].join(',') + '\n');
+            });
+            return res.end();
+        }
+
         // Fetch all products for the filter dropdown
         const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
         
+        const filters = { start_date, end_date, product_id };
+        const queryParams = new URLSearchParams();
+        if (start_date) queryParams.set('start_date', start_date);
+        if (end_date) queryParams.set('end_date', end_date);
+        if (product_id) queryParams.set('product_id', product_id);
+        const queryString = queryParams.toString();
+
         res.render('history', { 
             orders: result.rows, 
             products: productsResult.rows,
-            filters: { date, hour, product_id }
+            filters,
+            queryString
         });
     } catch (err) {
         console.error(err);

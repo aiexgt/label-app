@@ -187,9 +187,7 @@
                                 <a href="/inventory" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Inventario</a>
                                 <a href="/inventory/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Inventario</a>
                             <% } %>
-                            <% if (user.is_customer) { %>
-                                <a href="/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Entregados</a>
-                            <% } %>
+                            <a href="/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Entregados</a>
                             <% if (user.is_admin) { %>
                                 <a href="/admin/labels" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Etiquetas</a>
                                 <a href="/admin/products" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Catálogo</a>
@@ -238,9 +236,7 @@
                     <a href="/inventory" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Inventario</a>
                     <a href="/inventory/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Inventario</a>
                 <% } %>
-                <% if (user.is_customer) { %>
-                    <a href="/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Entregados</a>
-                <% } %>
+                <a href="/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Entregados</a>
                 <% if (user.is_admin) { %>
                     <a href="/admin/labels" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Etiquetas</a>
                     <a href="/admin/products" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Catálogo</a>

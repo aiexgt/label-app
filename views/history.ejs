@@ -9,12 +9,12 @@
         <h2 class="text-sm font-medium text-ink-900 mb-4">Filtrar Pedidos</h2>
         <form action="/history" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
-                <label class="block text-xs font-medium text-ink-500 mb-1">Día (Fecha de entrega)</label>
-                <input type="date" name="date" value="<%= filters.date || '' %>" class="input-minimal">
+                <label class="block text-xs font-medium text-ink-500 mb-1">Fecha Desde</label>
+                <input type="date" name="start_date" value="<%= filters.start_date || '' %>" class="input-minimal">
             </div>
             <div>
-                <label class="block text-xs font-medium text-ink-500 mb-1">Hora de entrega</label>
-                <input type="time" name="hour" value="<%= filters.hour || '' %>" class="input-minimal">
+                <label class="block text-xs font-medium text-ink-500 mb-1">Fecha Hasta</label>
+                <input type="date" name="end_date" value="<%= filters.end_date || '' %>" class="input-minimal">
             </div>
             <div>
                 <label class="block text-xs font-medium text-ink-500 mb-1">Tipo de Etiqueta (Producto)</label>
@@ -25,9 +25,12 @@
                     <% }) %>
                 </select>
             </div>
-            <div class="flex gap-2">
-                <button type="submit" class="flex-1 btn-minimal">Filtrar</button>
-                <a href="/history" class="flex-1 btn-outline text-center">Limpiar</a>
+            <div class="flex gap-2 flex-wrap">
+                <button type="submit" class="flex-1 btn-minimal !py-2">Filtrar</button>
+                <a href="/history" class="flex-1 btn-outline text-center !py-2">Limpiar</a>
+                <a href="/history?<%= queryString %>&export=csv" class="flex-1 btn-minimal !bg-emerald-600 hover:!bg-emerald-700 text-center !py-2 flex items-center justify-center gap-1.5" title="Exportar resultados a CSV">
+                    📥 Exportar CSV
+                </a>
             </div>
         </form>
     </div>
@@ -38,15 +41,27 @@
             <h3 class="text-sm font-medium text-ink-900">Listado de Entregas</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-ink-300">
+            <table class="min-w-full divide-y divide-ink-300" id="history-table">
                 <thead class="bg-surface">
                     <tr>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Producto / Detalle</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Dimensiones / Hojas</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Operador</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Fecha y Hora de Entrega</th>
-                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Archivos</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(0)">
+                            ID <span id="sort-arrow-0" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(1)">
+                            Etiqueta <span id="sort-arrow-1" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(2)">
+                            Cantidad de Etiquetas <span id="sort-arrow-2" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(3)">
+                            Fecha Ingreso <span id="sort-arrow-3" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(4)">
+                            Fecha Entrega <span id="sort-arrow-4" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(5)">
+                            Diseño <span id="sort-arrow-5" class="ml-1 text-[9px] text-ink-400">↕</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="bg-panel divide-y divide-ink-300">
@@ -60,24 +75,25 @@
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= order.id %></td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-ink-900"><%= order.product_name %></div>
-                                <div class="text-xs text-ink-500"><%= order.quality_name || '-' %> &bull; <%= order.paper_type || 'Matte' %></div>
+                                <% if (order.tags) { %>
+                                    <div class="text-[10px] font-medium text-brand-600 mt-0.5"><%= order.tags %></div>
+                                <% } %>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-ink-900">
+                                <%= order.quantity %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
-                                <%= order.height %>x<%= order.width %>cm<br><%= order.quantity %> unid. (<%= order.total_sheets %> Hojas)
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
-                                👤 <%= order.operator_username || 'Desconocido' %>
+                                <%= new Date(order.order_date).toLocaleDateString('es-ES') %> a las <%= new Date(order.order_date).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
                                 <%= new Date(order.updated_at).toLocaleDateString('es-ES') %> a las <%= new Date(order.updated_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-brand-600">
-                                    <% if (order.image_path) { %><a href="<%= order.image_path %>" target="_blank" class="hover:underline">Diseño</a><% } %>
-                                    <% if (order.word_path) { %><a href="<%= order.word_path %>" target="_blank" class="hover:underline">DOC</a><% } %>
-                                    <% if (order.pdf_path) { %><a href="<%= order.pdf_path %>" target="_blank" class="hover:underline">PDF Grupo</a><% } %>
-                                    <% if (order.pdf_individual_path) { %><a href="<%= order.pdf_individual_path %>" target="_blank" class="hover:underline">PDF Individual</a><% } %>
-                                </div>
+                                <% if (order.image_path) { %>
+                                    <a href="<%= order.image_path %>" target="_blank" class="text-xs text-brand-600 hover:text-brand-850 hover:underline transition-colors font-medium">Diseño</a>
+                                <% } else { %>
+                                    <span class="text-xs text-ink-400">-</span>
+                                <% } %>
                             </td>
                         </tr>
                     <% }) %>
@@ -88,6 +104,78 @@
 </div>
 
 <script>
+    let sortDirections = {};
+
+    function sortTable(colIndex) {
+        const table = document.getElementById("history-table");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        // Evitar ordenar si la tabla está vacía
+        if (rows.length === 1 && rows[0].cells.length === 1) return;
+        
+        // Obtener dirección de ordenamiento actual (por defecto asc)
+        let dir = sortDirections[colIndex] === 'asc' ? 'desc' : 'asc';
+        sortDirections = {}; // Reiniciar otras
+        sortDirections[colIndex] = dir;
+        
+        // Reiniciar todos los indicadores
+        for (let i = 0; i <= 5; i++) {
+            const arrow = document.getElementById("sort-arrow-" + i);
+            if (arrow) arrow.textContent = "↕";
+        }
+        
+        // Colocar indicador en la columna ordenada
+        document.getElementById("sort-arrow-" + colIndex).textContent = dir === 'asc' ? "▲" : "▼";
+        
+        rows.sort((a, b) => {
+            let valA = getCellValue(a, colIndex);
+            let valB = getCellValue(b, colIndex);
+            
+            // Ordenar dependiendo de la columna
+            if (colIndex === 0) { // ID
+                const idA = parseInt(valA.replace('#', '')) || 0;
+                const idB = parseInt(valB.replace('#', '')) || 0;
+                return dir === 'asc' ? idA - idB : idB - idA;
+            } else if (colIndex === 2) { // Cantidad
+                const qtyA = parseFloat(valA) || 0;
+                const qtyB = parseFloat(valB) || 0;
+                return dir === 'asc' ? qtyA - qtyB : qtyB - qtyA;
+            } else if (colIndex === 3 || colIndex === 4) { // Fechas
+                const dateA = parseCustomDate(valA);
+                const dateB = parseCustomDate(valB);
+                return dir === 'asc' ? dateA - dateB : dateB - dateA;
+            } else { // Cadenas de texto
+                return dir === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            }
+        });
+        
+        // Volver a añadir las filas ordenadas
+        tbody.innerHTML = "";
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function getCellValue(row, colIndex) {
+        const cell = row.cells[colIndex];
+        if (colIndex === 1) { // Etiqueta (nombre de producto)
+            const mainDiv = cell.querySelector("div");
+            return mainDiv ? mainDiv.textContent.trim() : cell.textContent.trim();
+        }
+        return cell.textContent.trim();
+    }
+
+    function parseCustomDate(dateStr) {
+        // Formato esperado: "dd/mm/aaaa a las hh:mm"
+        const match = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4})\s+a las\s+(\d{2}):(\d{2})/);
+        if (match) {
+            // new Date(year, monthIndex, day, hours, minutes)
+            return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]), parseInt(match[4]), parseInt(match[5]));
+        }
+        return new Date(0);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('product_id_filter')) {
             new TomSelect("#product_id_filter", {
