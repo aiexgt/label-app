@@ -106,7 +106,14 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
 router.get('/history', async (req, res) => {
     try {
         const { start_date, end_date, product_id, export: exportFormat, group_by } = req.query;
-        const isGrouped = group_by === 'true';
+        
+        // Persist and fallback to session preference
+        let preferredGroupBy = req.session.history_group_by || 'false';
+        if (group_by !== undefined) {
+            preferredGroupBy = group_by;
+            req.session.history_group_by = group_by;
+        }
+        const isGrouped = preferredGroupBy === 'true';
         
         let query = '';
         let params = [];
@@ -201,7 +208,7 @@ router.get('/history', async (req, res) => {
         // Fetch all products for the filter dropdown
         const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
         
-        const filters = { start_date, end_date, product_id, group_by };
+        const filters = { start_date, end_date, product_id, group_by: preferredGroupBy };
         const queryParams = new URLSearchParams();
         if (start_date) queryParams.set('start_date', start_date);
         if (end_date) queryParams.set('end_date', end_date);

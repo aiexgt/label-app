@@ -16,6 +16,7 @@
     <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6">
         <h2 class="text-sm font-medium text-ink-900 mb-4">Filtrar Pedidos</h2>
         <form action="/history" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <input type="hidden" name="group_by" value="<%= filters.group_by || 'false' %>">
             <div>
                 <label class="block text-xs font-medium text-ink-500 mb-1">Fecha Desde</label>
                 <input type="date" name="start_date" value="<%= filters.start_date || '' %>" class="input-minimal">
@@ -38,7 +39,7 @@
                 <a href="/history" class="flex-grow btn-outline text-center !py-2">Limpiar</a>
                 
                 <% if (filters.group_by === 'true') { %>
-                    <a href="/history?<%= individualQueryString %>" class="flex-grow btn-minimal !bg-amber-600 hover:!bg-amber-700 text-center !py-2" title="Mostrar listado individual de pedidos">
+                    <a href="/history?<%= individualQueryString ? individualQueryString + '&' : '' %>group_by=false" class="flex-grow btn-minimal !bg-amber-600 hover:!bg-amber-700 text-center !py-2" title="Mostrar listado individual de pedidos">
                         📄 Vista Individual
                     </a>
                 <% } else { %>
