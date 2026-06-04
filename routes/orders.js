@@ -205,6 +205,37 @@ router.get('/history', async (req, res) => {
             return res.end();
         }
 
+        // Calculate summary cards metrics
+        let totalEtiquetas = 0;
+        let mostRequestedProduct = 'Ninguno';
+        let mostRequestedQty = 0;
+
+        if (isGrouped) {
+            result.rows.forEach(row => {
+                totalEtiquetas += parseInt(row.total_quantity) || 0;
+            });
+            if (result.rows.length > 0) {
+                mostRequestedProduct = result.rows[0].product_name;
+                mostRequestedQty = result.rows[0].total_quantity;
+            }
+        } else {
+            const productSums = {};
+            result.rows.forEach(order => {
+                const qty = parseInt(order.quantity) || 0;
+                totalEtiquetas += qty;
+                
+                const prodName = order.product_name;
+                productSums[prodName] = (productSums[prodName] || 0) + qty;
+            });
+            
+            for (const prodName in productSums) {
+                if (productSums[prodName] > mostRequestedQty) {
+                    mostRequestedQty = productSums[prodName];
+                    mostRequestedProduct = prodName;
+                }
+            }
+        }
+
         // Fetch all products for the filter dropdown
         const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
         
@@ -220,7 +251,10 @@ router.get('/history', async (req, res) => {
             orders: result.rows, 
             products: productsResult.rows,
             filters,
-            queryString
+            queryString,
+            totalEtiquetas,
+            mostRequestedProduct,
+            mostRequestedQty
         });
     } catch (err) {
         console.error(err);

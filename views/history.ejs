@@ -3,6 +3,40 @@
     <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Historial de Pedidos Entregados</h1>
 </div>
 
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Card: Total de Etiquetas -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6 flex items-center justify-between">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-ink-500 block mb-1">Total de Etiquetas</span>
+            <span class="text-3xl font-bold text-ink-900"><%= totalEtiquetas.toLocaleString('es-ES') %></span>
+        </div>
+        <div class="p-3 bg-brand-50 dark:bg-brand-200/10 rounded-full text-brand-600 dark:text-brand-500">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card: Etiqueta más pedida -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6 flex items-center justify-between">
+        <div class="min-w-0 flex-1 pr-4">
+            <span class="text-xs font-semibold uppercase tracking-wider text-ink-500 block mb-1">Etiqueta más pedida</span>
+            <span class="text-xl font-bold text-ink-900 truncate block" title="<%= mostRequestedProduct %>">
+                <%= mostRequestedProduct %>
+            </span>
+            <% if (mostRequestedQty > 0) { %>
+                <span class="text-xs text-ink-500 mt-1 block">Con <strong class="text-ink-900"><%= mostRequestedQty.toLocaleString('es-ES') %></strong> unidades</span>
+            <% } %>
+        </div>
+        <div class="p-3 bg-brand-50 dark:bg-brand-200/10 rounded-full text-brand-600 dark:text-brand-500 flex-shrink-0">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.243.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.773-.567-.374-1.81.588-1.81h4.907a1 1 0 00.95-.69l1.519-4.674z"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+
 <%
   let individualQs = [];
   if (filters.start_date) individualQs.push('start_date=' + filters.start_date);
