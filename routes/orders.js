@@ -18,7 +18,7 @@ router.get('/dashboard', async (req, res) => {
             JOIN products p ON l.product_id = p.id
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
-            WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at) = CURRENT_DATE)
+            WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala'))
             ORDER BY o.position ASC, o.id ASC
         `;
         const result = await pool.query(query, [isAdmin]);
@@ -105,7 +105,12 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
 // Delivered Orders History View
 router.get('/history', async (req, res) => {
     try {
-        const { start_date, end_date, product_id, export: exportFormat, group_by } = req.query;
+        let { start_date, end_date, product_id, export: exportFormat, group_by } = req.query;
+        
+        // Default to today's date in Guatemala timezone if undefined
+        const todayStr = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        if (start_date === undefined) start_date = todayStr;
+        if (end_date === undefined) end_date = todayStr;
         
         // Persist and fallback to session preference
         let preferredGroupBy = req.session.history_group_by || 'false';
