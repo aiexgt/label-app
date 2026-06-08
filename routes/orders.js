@@ -148,12 +148,12 @@ router.get('/history', async (req, res) => {
         }
         
         if (start_date) {
-            query += ` AND DATE(o.updated_at) >= $${paramIndex++}`;
+            query += ` AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') >= $${paramIndex++}`;
             params.push(start_date);
         }
         
         if (end_date) {
-            query += ` AND DATE(o.updated_at) <= $${paramIndex++}`;
+            query += ` AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') <= $${paramIndex++}`;
             params.push(end_date);
         }
         
@@ -227,12 +227,12 @@ router.get('/history', async (req, res) => {
         let sumParamIndex = 1;
         
         if (start_date) {
-            sumQuery += ` AND DATE(o.updated_at) >= $${sumParamIndex++}`;
+            sumQuery += ` AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') >= $${sumParamIndex++}`;
             sumParams.push(start_date);
         }
         
         if (end_date) {
-            sumQuery += ` AND DATE(o.updated_at) <= $${sumParamIndex++}`;
+            sumQuery += ` AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') <= $${sumParamIndex++}`;
             sumParams.push(end_date);
         }
         

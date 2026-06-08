@@ -57,7 +57,7 @@ CREATE TABLE orders (
     observations TEXT,
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     position INTEGER DEFAULT 0,
-    labor BOOLEAN DEFAULT FALSE,
+    labor BOOLEAN DEFAULT TRUE,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
