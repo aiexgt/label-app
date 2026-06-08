@@ -59,7 +59,8 @@ router.get('/orders/new', isNotCustomer, async (req, res) => {
 
 // Process New Order
 router.post('/orders', isNotCustomer, async (req, res) => {
-    const { label_id, quantity, observations } = req.body;
+    const { label_id, quantity, observations, labor } = req.body;
+    const hasLabor = labor === 'true' || labor === true;
     
     try {
         // Calculate totals based on label info
@@ -75,11 +76,11 @@ router.post('/orders', isNotCustomer, async (req, res) => {
         const nextPosition = posQuery.rows[0].max_pos + 1;
 
         const insertQuery = `
-            INSERT INTO orders (label_id, quantity, total_sheets, observations, position)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO orders (label_id, quantity, total_sheets, observations, position, labor)
+            VALUES ($1, $2, $3, $4, $5, $6)
         `;
         
-        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations, nextPosition]);
+        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations, nextPosition, hasLabor]);
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
@@ -189,7 +190,7 @@ router.get('/history', async (req, res) => {
                     ].join(',') + '\n');
                 });
             } else {
-                res.write('ID,Etiqueta,Tags,Cantidad,Fecha Ingreso,Fecha Entrega,Diseño URL\n');
+                res.write('ID,Etiqueta,Tags,Cantidad,Mano de Obra,Fecha Ingreso,Fecha Entrega,Diseño URL\n');
                 
                 result.rows.forEach(order => {
                     const orderDate = new Date(order.order_date).toLocaleString('es-ES', { timeZone: 'America/Guatemala' });
@@ -201,6 +202,7 @@ router.get('/history', async (req, res) => {
                         escapeCsv(order.product_name),
                         escapeCsv(order.tags),
                         order.quantity,
+                        order.labor ? 'Sí' : 'No',
                         escapeCsv(orderDate),
                         escapeCsv(deliveryDate),
                         escapeCsv(designUrl)
@@ -211,14 +213,42 @@ router.get('/history', async (req, res) => {
         }
 
         // Calculate summary cards metrics
-        let totalEtiquetas = 0;
+        let sumQuery = `
+            SELECT 
+                COALESCE(SUM(o.quantity), 0)::integer as total_general,
+                COALESCE(SUM(CASE WHEN o.labor = TRUE THEN o.quantity ELSE 0 END), 0)::integer as total_labor
+            FROM orders o
+            JOIN labels l ON o.label_id = l.id
+            JOIN products p ON l.product_id = p.id
+            WHERE o.status = 'entregado'
+        `;
+        
+        let sumParams = [];
+        let sumParamIndex = 1;
+        
+        if (start_date) {
+            sumQuery += ` AND DATE(o.updated_at) >= $${sumParamIndex++}`;
+            sumParams.push(start_date);
+        }
+        
+        if (end_date) {
+            sumQuery += ` AND DATE(o.updated_at) <= $${sumParamIndex++}`;
+            sumParams.push(end_date);
+        }
+        
+        if (product_id) {
+            sumQuery += ` AND l.product_id = $${sumParamIndex++}`;
+            sumParams.push(product_id);
+        }
+        
+        const sumResult = await pool.query(sumQuery, sumParams);
+        const totalEtiquetasGeneral = sumResult.rows[0].total_general;
+        const totalEtiquetasLabor = sumResult.rows[0].total_labor;
+
         let mostRequestedProduct = 'Ninguno';
         let mostRequestedQty = 0;
 
         if (isGrouped) {
-            result.rows.forEach(row => {
-                totalEtiquetas += parseInt(row.total_quantity) || 0;
-            });
             if (result.rows.length > 0) {
                 mostRequestedProduct = result.rows[0].product_name;
                 mostRequestedQty = result.rows[0].total_quantity;
@@ -227,8 +257,6 @@ router.get('/history', async (req, res) => {
             const productSums = {};
             result.rows.forEach(order => {
                 const qty = parseInt(order.quantity) || 0;
-                totalEtiquetas += qty;
-                
                 const prodName = order.product_name;
                 productSums[prodName] = (productSums[prodName] || 0) + qty;
             });
@@ -257,13 +285,27 @@ router.get('/history', async (req, res) => {
             products: productsResult.rows,
             filters,
             queryString,
-            totalEtiquetas,
+            totalEtiquetasGeneral,
+            totalEtiquetasLabor,
             mostRequestedProduct,
             mostRequestedQty
         });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
+    }
+});
+
+// POST /orders/:id/labor - Toggle labor status (Admin only)
+router.post('/orders/:id/labor', isAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { labor } = req.body;
+    try {
+        await pool.query('UPDATE orders SET labor = $1 WHERE id = $2', [labor === true || labor === 'true', id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server Error' });
     }
 });
 

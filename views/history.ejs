@@ -4,16 +4,29 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <!-- Card: Total de Etiquetas -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Card: Total de Etiquetas General -->
     <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6 flex items-center justify-between">
         <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-ink-500 block mb-1">Total de Etiquetas</span>
-            <span class="text-3xl font-bold text-ink-900"><%= totalEtiquetas.toLocaleString('es-ES') %></span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-ink-500 block mb-1">Total de Etiquetas General</span>
+            <span class="text-3xl font-bold text-ink-900"><%= totalEtiquetasGeneral.toLocaleString('es-ES') %></span>
         </div>
         <div class="p-3 bg-brand-50 dark:bg-brand-200/10 rounded-full text-brand-600 dark:text-brand-500">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card: Total de Etiquetas Con Mano de Obra -->
+    <div class="panel bg-panel border border-ink-300 rounded-lg shadow-subtle p-6 flex items-center justify-between">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-ink-500 block mb-1">Total de Etiquetas Con Mano de Obra</span>
+            <span class="text-3xl font-bold text-brand-600"><%= totalEtiquetasLabor.toLocaleString('es-ES') %></span>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-full text-amber-600 dark:text-amber-500">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
         </div>
     </div>
@@ -139,20 +152,23 @@
                                 Cantidad de Etiquetas <span id="sort-arrow-2" class="ml-1 text-[9px] text-ink-400">↕</span>
                             </th>
                             <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(3)">
-                                Fecha Ingreso <span id="sort-arrow-3" class="ml-1 text-[9px] text-ink-400">↕</span>
+                                Mano de Obra <span id="sort-arrow-3" class="ml-1 text-[9px] text-ink-400">↕</span>
                             </th>
                             <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(4)">
-                                Fecha Entrega <span id="sort-arrow-4" class="ml-1 text-[9px] text-ink-400">↕</span>
+                                Fecha Ingreso <span id="sort-arrow-4" class="ml-1 text-[9px] text-ink-400">↕</span>
                             </th>
                             <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(5)">
-                                Diseño <span id="sort-arrow-5" class="ml-1 text-[9px] text-ink-400">↕</span>
+                                Fecha Entrega <span id="sort-arrow-5" class="ml-1 text-[9px] text-ink-400">↕</span>
+                            </th>
+                            <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider cursor-pointer select-none" onclick="sortTable(6)">
+                                Diseño <span id="sort-arrow-6" class="ml-1 text-[9px] text-ink-400">↕</span>
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-panel divide-y divide-ink-300">
                         <% if (orders.length === 0) { %>
                             <tr>
-                                <td colspan="6" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas con los filtros aplicados.</td>
+                                <td colspan="7" class="px-6 py-8 text-center text-sm text-ink-500 italic">No se encontraron entregas con los filtros aplicados.</td>
                             </tr>
                         <% } %>
                         <% orders.forEach(order => { %>
@@ -166,6 +182,24 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-ink-900">
                                     <%= order.quantity %>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <% if (user.is_admin) { %>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" 
+                                                   class="sr-only peer labor-toggle" 
+                                                   data-id="<%= order.id %>" 
+                                                   <%= order.labor ? 'checked' : '' %>>
+                                            <div class="w-9 h-5 bg-ink-300 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                                            <span class="ml-2 text-xs text-ink-700 peer-checked:text-brand-600 font-medium peer-checked:font-semibold">
+                                                <%= order.labor ? 'Sí' : 'No' %>
+                                            </span>
+                                        </label>
+                                    <% } else { %>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= order.labor ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-ink-100 text-ink-600 dark:bg-zinc-800' %>">
+                                            <%= order.labor ? 'Mano de Obra' : 'No' %>
+                                        </span>
+                                    <% } %>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-xs text-ink-500">
                                     <%= new Date(order.order_date).toLocaleDateString('es-ES', { timeZone: 'America/Guatemala' }) %> a las <%= new Date(order.order_date).toLocaleTimeString('es-ES', { timeZone: 'America/Guatemala', hour: '2-digit', minute:'2-digit' }) %>
@@ -203,7 +237,7 @@
         sortDirections = {};
         sortDirections[colIndex] = dir;
         
-        for (let i = 0; i <= 5; i++) {
+        for (let i = 0; i <= 6; i++) {
             const arrow = document.getElementById("sort-arrow-" + i);
             if (arrow) arrow.textContent = "↕";
         }
@@ -222,7 +256,7 @@
                 const qtyA = parseFloat(valA) || 0;
                 const qtyB = parseFloat(valB) || 0;
                 return dir === 'asc' ? qtyA - qtyB : qtyB - qtyA;
-            } else if (colIndex === 3 || colIndex === 4) {
+            } else if (colIndex === 4 || colIndex === 5) {
                 const dateA = parseCustomDate(valA);
                 const dateB = parseCustomDate(valB);
                 return dir === 'asc' ? dateA - dateB : dateB - dateA;
@@ -295,6 +329,50 @@
                 placeholder: "Todos los productos"
             });
         }
+        
+        // AJAX toggle for labor status
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('labor-toggle')) {
+                const checkbox = e.target;
+                const orderId = checkbox.getAttribute('data-id');
+                const isLabor = checkbox.checked;
+                const labelSpan = checkbox.nextElementSibling.nextElementSibling;
+                
+                checkbox.disabled = true;
+                
+                fetch(`/orders/${orderId}/labor`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ labor: isLabor })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error');
+                    return res.json();
+                })
+                .then(data => {
+                    checkbox.disabled = false;
+                    if (data.success) {
+                        labelSpan.textContent = isLabor ? 'Sí' : 'No';
+                        if (isLabor) {
+                            labelSpan.className = 'ml-2 text-xs text-brand-600 font-semibold';
+                        } else {
+                            labelSpan.className = 'ml-2 text-xs text-ink-700 font-medium';
+                        }
+                    } else {
+                        checkbox.checked = !isLabor;
+                        alert('Error al actualizar el estado.');
+                    }
+                })
+                .catch(err => {
+                    checkbox.checked = !isLabor;
+                    checkbox.disabled = false;
+                    console.error(err);
+                    alert('Error al conectar con el servidor.');
+                });
+            }
+        });
     });
 </script>
 <%- include('partials/footer') %>
