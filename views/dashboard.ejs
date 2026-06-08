@@ -76,13 +76,27 @@
                             </div>
                         <% } %>
                         
-                        <% if (order.operator_username) { %>
-                            <div class="mb-3">
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <% if (order.operator_username) { %>
                                 <span id="operator-<%= order.id %>" class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                                     👤 <%= order.operator_username %>
                                 </span>
-                            </div>
-                        <% } %>
+                            <% } %>
+                            
+                            <% if (user.is_customer) { %>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border <%= order.labor ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50' : 'bg-ink-100 text-ink-500 border-ink-300 dark:bg-zinc-800 dark:text-ink-400 dark:border-zinc-700' %>">
+                                    🛠️ <%= order.labor ? 'Mano de Obra' : 'Sin Mano de Obra' %>
+                                </span>
+                            <% } else { %>
+                                <span id="labor-pill-<%= order.id %>" 
+                                      onclick="toggleLabor(<%= order.id %>)" 
+                                      class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-85 transition-opacity <%= order.labor ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50' : 'bg-ink-100 text-ink-500 border-ink-300 dark:bg-zinc-800 dark:text-ink-400 dark:border-zinc-700' %>"
+                                      data-labor="<%= order.labor %>"
+                                      title="Click para cambiar estado de Mano de Obra">
+                                    🛠️ <%= order.labor ? 'Mano de Obra' : 'Sin Mano de Obra' %>
+                                </span>
+                            <% } %>
+                        </div>
                         
                         <!-- Attachments -->
                         <div class="flex flex-wrap gap-x-3 gap-y-1 mb-4">
@@ -179,6 +193,45 @@
             });
         });
     });
+
+    function toggleLabor(id) {
+        const pill = document.getElementById('labor-pill-' + id);
+        const currentLabor = pill.getAttribute('data-labor') === 'true';
+        const newLabor = !currentLabor;
+        
+        pill.style.pointerEvents = 'none';
+        pill.style.opacity = '0.5';
+        
+        fetch(`/orders/${id}/labor`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ labor: newLabor })
+        })
+        .then(res => res.json())
+        .then(data => {
+            pill.style.pointerEvents = 'auto';
+            pill.style.opacity = '1';
+            
+            if (data.success) {
+                pill.setAttribute('data-labor', newLabor ? 'true' : 'false');
+                pill.textContent = newLabor ? '🛠️ Mano de Obra' : '🛠️ Sin Mano de Obra';
+                
+                if (newLabor) {
+                    pill.className = "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-85 transition-opacity bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50";
+                } else {
+                    pill.className = "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-85 transition-opacity bg-ink-100 text-ink-500 border-ink-300 dark:bg-zinc-800 dark:text-ink-400 dark:border-zinc-700";
+                }
+            } else {
+                alert('Error al guardar: ' + (data.error || 'Desconocido'));
+            }
+        })
+        .catch(err => {
+            pill.style.pointerEvents = 'auto';
+            pill.style.opacity = '1';
+            console.error(err);
+            alert('Error de red al guardar.');
+        });
+    }
 
     function editObservations(id) {
         const textEl = document.getElementById('obs-text-' + id);

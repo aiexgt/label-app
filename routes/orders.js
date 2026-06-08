@@ -296,8 +296,8 @@ router.get('/history', async (req, res) => {
     }
 });
 
-// POST /orders/:id/labor - Toggle labor status (Admin only)
-router.post('/orders/:id/labor', isAdmin, async (req, res) => {
+// POST /orders/:id/labor - Toggle labor status (Admin & Operator)
+router.post('/orders/:id/labor', isNotCustomer, async (req, res) => {
     const { id } = req.params;
     const { labor } = req.body;
     try {
