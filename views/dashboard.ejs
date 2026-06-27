@@ -18,7 +18,7 @@
             { id: 'impreso', name: 'Impreso', headerBg: 'bg-status-printed', text: 'text-status-printed-text' },
             { id: 'cortando', name: 'Cortando', headerBg: 'bg-status-cutting', text: 'text-status-cutting-text' },
             { id: 'terminado', name: 'Terminado', headerBg: 'bg-status-finished', text: 'text-status-finished-text' },
-            { id: 'entregado', name: 'Entregado', headerBg: 'bg-status-delivered', text: 'text-status-delivered-text' }
+            { id: 'entregado', name: user.is_admin ? 'Entregado (Semana)' : 'Entregado (Hoy)', headerBg: 'bg-status-delivered', text: 'text-status-delivered-text' }
         ];
     %>
     

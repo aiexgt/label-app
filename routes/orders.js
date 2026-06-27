@@ -18,7 +18,9 @@ router.get('/dashboard', async (req, res) => {
             JOIN products p ON l.product_id = p.id
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
-            WHERE (o.status != 'entregado' OR $1 = TRUE OR DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala'))
+            WHERE (o.status != 'entregado' 
+               OR ($1 = TRUE AND o.updated_at >= CURRENT_TIMESTAMP - INTERVAL '7 days')
+               OR ($1 = FALSE AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')))
             ORDER BY o.position ASC, o.id ASC
         `;
         const result = await pool.query(query, [isAdmin]);

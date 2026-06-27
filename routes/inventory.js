@@ -151,6 +151,9 @@ router.post('/:id/adjust', async (req, res) => {
         );
         
         await pool.query('COMMIT');
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true, newQuantity: newQty });
+        }
         res.redirect('/inventory');
     } catch (err) {
         await pool.query('ROLLBACK');

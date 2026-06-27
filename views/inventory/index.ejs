@@ -38,7 +38,7 @@
                 <input type="text" id="supply-search" placeholder="Buscar suministros..." class="input-minimal !py-1 !px-3 text-xs" />
             </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full divide-y divide-ink-300">
                 <thead class="bg-surface">
                     <tr>
@@ -58,23 +58,29 @@
                         </tr>
                     <% } %>
                     <% supplies.forEach(supply => { %>
-                        <tr class="hover:bg-surface transition-colors">
+                        <tr class="hover:bg-surface transition-colors" id="desktop-row-<%= supply.id %>">
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-ink-500">#<%= supply.id %></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-ink-900 supply-name-cell">
                                 <%= supply.name %>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-ink-500">
-                                <span class="font-semibold text-ink-900"><%= supply.quantity %></span>
+                                <span id="supply-qty-<%= supply.id %>" class="font-semibold text-ink-900 transition-all duration-300"><%= supply.quantity %></span>
                                 <span class="text-xs text-ink-500 font-normal"><%= supply.unit_of_measure %></span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex gap-2">
-                                    <a href="/inventory/<%= supply.id %>/adjust?type=entrada" class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100 transition-colors" title="Registrar Entrada (+)">
+                                    <button type="button" 
+                                            onclick="openAdjustModal(<%= supply.id %>, '<%= supply.name %>', <%= supply.quantity %>, '<%= supply.unit_of_measure %>', 'entrada')" 
+                                            class="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all active:scale-95 cursor-pointer" 
+                                            title="Registrar Entrada (+)">
                                         Ingreso (+)
-                                    </a>
-                                    <a href="/inventory/<%= supply.id %>/adjust?type=salida" class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 transition-colors" title="Registrar Egreso (-)">
+                                    </button>
+                                    <button type="button" 
+                                            onclick="openAdjustModal(<%= supply.id %>, '<%= supply.name %>', <%= supply.quantity %>, '<%= supply.unit_of_measure %>', 'salida')" 
+                                            class="inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-all active:scale-95 cursor-pointer" 
+                                            title="Registrar Egreso (-)">
                                         Egreso (-)
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                             <% if (user.is_admin) { %>
@@ -92,6 +98,157 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Mobile View (Cards Grid) -->
+        <div class="block md:hidden divide-y divide-ink-300/60 bg-panel">
+            <% if (supplies.length === 0) { %>
+                <div class="px-6 py-8 text-center text-sm text-ink-500 italic">No hay suministros registrados.</div>
+            <% } %>
+            <% supplies.forEach(supply => { %>
+                <div class="p-5 flex flex-col gap-3 hover:bg-surface/30 transition-colors" id="mobile-card-<%= supply.id %>">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-mono text-ink-500">#<%= supply.id %></span>
+                            <h3 class="text-sm font-semibold text-ink-900 supply-name-cell"><%= supply.name %></h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-mono text-ink-500 uppercase tracking-wider block mb-0.5">Stock Actual</span>
+                            <span class="text-sm font-bold text-ink-900">
+                                <span id="supply-qty-mobile-<%= supply.id %>" class="font-semibold text-ink-900 transition-all duration-300"><%= supply.quantity %></span>
+                                <span class="text-xs text-ink-500 font-normal"><%= supply.unit_of_measure %></span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2.5 mt-1">
+                        <button type="button" 
+                                onclick="openAdjustModal(<%= supply.id %>, '<%= supply.name %>', <%= supply.quantity %>, '<%= supply.unit_of_measure %>', 'entrada')" 
+                                class="flex-1 py-2.5 text-center text-xs font-bold rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer" 
+                                title="Registrar Entrada (+)">
+                            ➕ Ingresar
+                        </button>
+                        <button type="button" 
+                                onclick="openAdjustModal(<%= supply.id %>, '<%= supply.name %>', <%= supply.quantity %>, '<%= supply.unit_of_measure %>', 'salida')" 
+                                class="flex-1 py-2.5 text-center text-xs font-bold rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer" 
+                                title="Registrar Egreso (-)">
+                            ➖ Egresar
+                        </button>
+                    </div>
+                    
+                    <% if (user.is_admin) { %>
+                        <div class="flex justify-end gap-4 text-xs mt-1 pt-2.5 border-t border-ink-300/40">
+                            <a href="/inventory/<%= supply.id %>/edit" class="text-brand-600 hover:text-brand-800 transition-colors font-medium">✏️ Editar</a>
+                            <form action="/inventory/<%= supply.id %>/delete" method="POST" class="ajax-delete-form inline-block" onsubmit="return confirm('¿Seguro que deseas eliminar este suministro?');">
+                                <button type="submit" class="text-red-500 hover:text-red-700 transition-colors font-medium">🗑️ Eliminar</button>
+                            </form>
+                        </div>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</div>
+
+<!-- Adjustment Modal -->
+<div id="adjust-modal" class="fixed inset-0 z-50 hidden flex sm:items-center sm:justify-center items-end justify-center p-0 sm:p-4">
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeAdjustModal()"></div>
+    
+    <!-- Modal Card -->
+    <div id="modal-card" class="relative bg-panel border-t sm:border border-ink-300 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 opacity-0 transition-all duration-300 flex flex-col max-h-[90vh]">
+        <!-- Drag Handle for Mobile Bottom Sheet -->
+        <div class="flex justify-center py-2 sm:hidden bg-surface border-b border-ink-300/40">
+            <div class="w-12 h-1 bg-ink-300 rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-ink-300 flex justify-between items-center bg-surface">
+            <div class="flex items-center gap-2">
+                <span id="header-icon" class="text-lg">📦</span>
+                <h3 class="font-bold text-ink-900 text-sm sm:text-base">Ajuste de Inventario</h3>
+            </div>
+            <button onclick="closeAdjustModal()" class="text-ink-500 hover:text-ink-700 p-1.5 rounded-lg hover:bg-ink-100 dark:hover:bg-zinc-800 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Form Content -->
+        <form id="adjust-form" onsubmit="submitAdjustment(event)" class="p-6 space-y-5 overflow-y-auto">
+            <input type="hidden" id="adjust-supply-id">
+            <input type="hidden" id="adjust-type" value="entrada">
+            
+            <!-- Supply Name and Info -->
+            <div class="bg-surface/50 border border-ink-300 rounded-xl p-4 flex justify-between items-center">
+                <div class="max-w-[65%]">
+                    <span class="text-[9px] font-bold text-ink-500 uppercase tracking-wider block mb-0.5">Suministro</span>
+                    <strong class="text-sm font-bold text-ink-900 break-words leading-tight" id="adjust-supply-name">Nombre</strong>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] font-bold text-ink-500 uppercase tracking-wider block mb-0.5">Stock Actual</span>
+                    <strong class="text-sm font-bold text-brand-600">
+                        <span id="adjust-supply-qty">0</span> 
+                        <span id="adjust-supply-unit" class="text-xs text-ink-500 font-normal">unid</span>
+                    </strong>
+                </div>
+            </div>
+            
+            <!-- Type Selector Tabs -->
+            <div>
+                <label class="block text-[10px] font-bold text-ink-700 mb-2 uppercase tracking-wider">Tipo de Ajuste</label>
+                <div class="grid grid-cols-2 gap-2 bg-surface p-1 rounded-xl border border-ink-300">
+                    <button type="button" id="tab-entrada" onclick="setAdjustType('entrada')" class="py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none">
+                        ➕ Ingreso
+                    </button>
+                    <button type="button" id="tab-salida" onclick="setAdjustType('salida')" class="py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none">
+                        ➖ Egreso
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quantity Selection with Touch Targets -->
+            <div>
+                <label class="block text-[10px] font-bold text-ink-700 mb-2 uppercase tracking-wider">Cantidad</label>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="changeQty(-5)" class="w-11 h-11 bg-surface border border-ink-300 rounded-xl font-bold text-ink-700 hover:bg-ink-100 dark:hover:bg-zinc-800 active:scale-90 transition-all text-xs flex items-center justify-center cursor-pointer select-none">-5</button>
+                    <button type="button" onclick="changeQty(-1)" class="w-11 h-11 bg-surface border border-ink-300 rounded-xl font-bold text-ink-700 hover:bg-ink-100 dark:hover:bg-zinc-800 active:scale-90 transition-all text-xs flex items-center justify-center cursor-pointer select-none">-1</button>
+                    
+                    <div class="relative flex-1">
+                        <input type="number" step="0.01" min="0.01" id="adjust-amount" required 
+                               class="w-full text-center text-lg font-bold text-ink-900 border border-ink-300 rounded-xl py-2 focus:ring-brand-500 focus:border-brand-500 bg-panel focus:outline-none" placeholder="0.00">
+                    </div>
+                    
+                    <button type="button" onclick="changeQty(1)" class="w-11 h-11 bg-surface border border-ink-300 rounded-xl font-bold text-ink-700 hover:bg-ink-100 dark:hover:bg-zinc-800 active:scale-90 transition-all text-xs flex items-center justify-center cursor-pointer select-none">+1</button>
+                    <button type="button" onclick="changeQty(5)" class="w-11 h-11 bg-surface border border-ink-300 rounded-xl font-bold text-ink-700 hover:bg-ink-100 dark:hover:bg-zinc-800 active:scale-90 transition-all text-xs flex items-center justify-center cursor-pointer select-none">+5</button>
+                </div>
+                
+                <!-- Quick Presets -->
+                <div class="flex gap-2 mt-3">
+                    <button type="button" onclick="setQty(10)" class="flex-1 py-1.5 bg-surface hover:bg-ink-100 dark:hover:bg-zinc-800 border border-ink-300 rounded-lg text-xs font-semibold text-ink-700 transition-colors cursor-pointer">10</button>
+                    <button type="button" onclick="setQty(50)" class="flex-1 py-1.5 bg-surface hover:bg-ink-100 dark:hover:bg-zinc-800 border border-ink-300 rounded-lg text-xs font-semibold text-ink-700 transition-colors cursor-pointer">50</button>
+                    <button type="button" onclick="setQty(100)" class="flex-1 py-1.5 bg-surface hover:bg-ink-100 dark:hover:bg-zinc-800 border border-ink-300 rounded-lg text-xs font-semibold text-ink-700 transition-colors cursor-pointer">100</button>
+                    <button type="button" onclick="setQty(500)" class="flex-1 py-1.5 bg-surface hover:bg-ink-100 dark:hover:bg-zinc-800 border border-ink-300 rounded-lg text-xs font-semibold text-ink-700 transition-colors cursor-pointer">500</button>
+                </div>
+            </div>
+            
+            <!-- Concept with Suggestions -->
+            <div>
+                <label class="block text-[10px] font-bold text-ink-700 mb-1.5 uppercase tracking-wider">Concepto / Motivo</label>
+                <input type="text" id="adjust-concept" required class="input-minimal" placeholder="Ej. Compra de material, Ajuste mensual, etc.">
+                
+                <!-- Suggested Concept chips -->
+                <div class="flex flex-wrap gap-1.5 mt-2.5" id="concept-suggestions">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </div>
+            
+            <!-- Submit/Cancel buttons -->
+            <div class="pt-4 border-t border-ink-300 flex gap-3">
+                <button type="button" onclick="closeAdjustModal()" class="flex-1 btn-outline py-2.5 text-xs sm:text-sm font-semibold rounded-xl cursor-pointer">Cancelar</button>
+                <button type="submit" id="submit-btn" class="flex-1 btn-minimal py-2.5 text-xs sm:text-sm font-semibold rounded-xl cursor-pointer">Registrar Ajuste</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -101,8 +258,9 @@
         if (searchInput) {
             searchInput.addEventListener('input', function(e) {
                 const query = e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const rows = document.querySelectorAll('#supplies-table-body tr');
                 
+                // Filter rows in Desktop Table
+                const rows = document.querySelectorAll('#supplies-table-body tr');
                 rows.forEach(row => {
                     const nameCell = row.querySelector('.supply-name-cell');
                     if (nameCell) {
@@ -114,8 +272,199 @@
                         }
                     }
                 });
+
+                // Filter cards in Mobile View
+                const cards = document.querySelectorAll('.block.md\\:hidden > div[id^="mobile-card-"]');
+                cards.forEach(card => {
+                    const nameCell = card.querySelector('.supply-name-cell');
+                    if (nameCell) {
+                        const nameText = nameCell.textContent.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        if (nameText.includes(query)) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
             });
         }
     });
+
+    // Modal Control Variables
+    const modal = document.getElementById('adjust-modal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalCard = document.getElementById('modal-card');
+    
+    const inputId = document.getElementById('adjust-supply-id');
+    const inputType = document.getElementById('adjust-type');
+    const labelName = document.getElementById('adjust-supply-name');
+    const labelQty = document.getElementById('adjust-supply-qty');
+    const labelUnit = document.getElementById('adjust-supply-unit');
+    const inputAmount = document.getElementById('adjust-amount');
+    const inputConcept = document.getElementById('adjust-concept');
+    const suggestionsContainer = document.getElementById('concept-suggestions');
+    
+    const tabEntrada = document.getElementById('tab-entrada');
+    const tabSalida = document.getElementById('tab-salida');
+    const submitBtn = document.getElementById('submit-btn');
+    const headerIcon = document.getElementById('header-icon');
+
+    const concepts = {
+        entrada: ['Compra', 'Reabastecimiento', 'Ajuste inicial', 'Devolución'],
+        salida: ['Consumo producción', 'Desperdicio / Merma', 'Desecho por daño', 'Ajuste inventario']
+    };
+
+    function openAdjustModal(id, name, unit, type = 'entrada') {
+        inputId.value = id;
+        labelName.textContent = name;
+        labelUnit.textContent = unit;
+        inputAmount.value = '';
+        inputConcept.value = '';
+        
+        // Read live qty value from desktop DOM span
+        const qtyElement = document.getElementById('supply-qty-' + id);
+        labelQty.textContent = qtyElement ? qtyElement.textContent : '0';
+        
+        setAdjustType(type);
+        
+        // Show modal elements (transition handling)
+        modal.classList.remove('hidden');
+        // Force reflow for transitions
+        void modal.offsetHeight;
+        
+        modalBackdrop.classList.remove('opacity-0');
+        modalCard.classList.remove('translate-y-full', 'sm:scale-95', 'opacity-0');
+        modalCard.classList.add('translate-y-0', 'sm:scale-100', 'opacity-100');
+    }
+    
+    function closeAdjustModal() {
+        modalBackdrop.classList.add('opacity-0');
+        modalCard.classList.add('translate-y-full', 'sm:scale-95', 'opacity-0');
+        modalCard.classList.remove('translate-y-0', 'sm:scale-100', 'opacity-100');
+        
+        // Hide after transition finishes
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+    
+    function setAdjustType(type) {
+        inputType.value = type;
+        
+        if (type === 'entrada') {
+            // Tab styles
+            tabEntrada.className = 'py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none bg-emerald-500 text-white shadow-sm cursor-pointer';
+            tabSalida.className = 'py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none bg-transparent text-ink-500 hover:text-ink-900 cursor-pointer';
+            
+            // Submit Button Style
+            submitBtn.className = 'flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 active:scale-95 transition-all cursor-pointer';
+            submitBtn.textContent = 'Registrar Ingreso';
+            headerIcon.textContent = '📥';
+        } else {
+            // Tab styles
+            tabEntrada.className = 'py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none bg-transparent text-ink-500 hover:text-ink-900 cursor-pointer';
+            tabSalida.className = 'py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none bg-rose-500 text-white shadow-sm cursor-pointer';
+            
+            // Submit Button Style
+            submitBtn.className = 'flex-1 py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-rose-500 text-white shadow-sm hover:bg-rose-600 active:scale-95 transition-all cursor-pointer';
+            submitBtn.textContent = 'Registrar Egreso';
+            headerIcon.textContent = '📤';
+        }
+        
+        // Render suggested concepts
+        renderSuggestions(type);
+    }
+    
+    function renderSuggestions(type) {
+        suggestionsContainer.innerHTML = '';
+        concepts[type].forEach(concept => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-3 py-1.5 bg-surface hover:bg-ink-100 dark:hover:bg-zinc-800 border border-ink-300 rounded-lg text-[10px] font-medium text-ink-700 transition-colors cursor-pointer select-none';
+            btn.textContent = concept;
+            btn.onclick = () => {
+                inputConcept.value = concept;
+            };
+            suggestionsContainer.appendChild(btn);
+        });
+    }
+    
+    function changeQty(diff) {
+        let val = parseFloat(inputAmount.value) || 0;
+        val += diff;
+        if (val < 0) val = 0;
+        inputAmount.value = val === 0 ? '' : val.toFixed(2).replace(/\.00$/, '');
+    }
+    
+    function setQty(val) {
+        inputAmount.value = val;
+    }
+    
+    function submitAdjustment(e) {
+        e.preventDefault();
+        
+        const id = inputId.value;
+        const type = inputType.value;
+        const amount = parseFloat(inputAmount.value);
+        const concept = inputConcept.value;
+        
+        if (isNaN(amount) || amount <= 0) {
+            alert('Por favor ingresa una cantidad válida mayor a 0');
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.7';
+        
+        fetch(`/inventory/${id}/adjust`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ type, amount, concept })
+        })
+        .then(async res => {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Update quantity in DOM (Desktop view)
+                const qtyElement = document.getElementById(`supply-qty-${id}`);
+                if (qtyElement) {
+                    qtyElement.textContent = data.newQuantity;
+                    triggerFlashAnimation(qtyElement, type);
+                }
+                
+                // Update quantity in DOM (Mobile view)
+                const qtyElementMobile = document.getElementById(`supply-qty-mobile-${id}`);
+                if (qtyElementMobile) {
+                    qtyElementMobile.textContent = data.newQuantity;
+                    triggerFlashAnimation(qtyElementMobile, type);
+                }
+                
+                // Close modal
+                closeAdjustModal();
+            }
+        })
+        .catch(err => {
+            alert(err.message || 'Error de red al guardar el ajuste');
+        });
+    }
+
+    function triggerFlashAnimation(element, type) {
+        const colorClass = type === 'entrada' ? 'text-emerald-500' : 'text-rose-500';
+        element.classList.add(colorClass, 'scale-110');
+        setTimeout(() => {
+            element.classList.remove(colorClass, 'scale-110');
+        }, 1000);
+    }
 </script>
 <%- include('../partials/footer') %>
