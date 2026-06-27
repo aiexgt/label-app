@@ -314,7 +314,7 @@
         salida: ['Consumo producción', 'Desperdicio / Merma', 'Desecho por daño', 'Ajuste inventario']
     };
 
-    function openAdjustModal(id, name, unit, type = 'entrada') {
+    function openAdjustModal(id, name, qty, unit, type = 'entrada') {
         inputId.value = id;
         labelName.textContent = name;
         labelUnit.textContent = unit;
@@ -323,7 +323,7 @@
         
         // Read live qty value from desktop DOM span
         const qtyElement = document.getElementById('supply-qty-' + id);
-        labelQty.textContent = qtyElement ? qtyElement.textContent : '0';
+        labelQty.textContent = qtyElement ? qtyElement.textContent : qty;
         
         setAdjustType(type);
         
