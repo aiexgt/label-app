@@ -12,11 +12,22 @@
         <ul class="divide-y divide-ink-300">
             <% if (products.length > 0) { %>
                 <% products.forEach(product => { %>
-                    <li class="py-3 flex justify-between items-center group">
-                        <span class="text-sm text-ink-900"><%= product.name %></span>
-                        <form action="/admin/products/<%= product.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity" onsubmit="return confirm('¿Eliminar producto? Se eliminarán también las etiquetas asociadas.');">
-                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
-                        </form>
+                    <li class="py-3 flex justify-between items-center group" id="product-row-<%= product.id %>">
+                        <div class="flex-grow flex items-center gap-3">
+                            <span class="text-sm text-ink-900 font-medium" id="product-name-<%= product.id %>"><%= product.name %></span>
+                            <div class="hidden gap-2 w-full max-w-xs" id="product-edit-container-<%= product.id %>">
+                                <input type="text" id="product-input-<%= product.id %>" value="<%= product.name %>" class="input-minimal !py-1 text-sm flex-grow">
+                                <button onclick="saveProduct(<%= product.id %>)" class="text-xs text-brand-600 hover:text-brand-800 font-semibold cursor-pointer">Guardar</button>
+                                <button onclick="cancelEditProduct(<%= product.id %>)" class="text-xs text-ink-500 hover:text-ink-700 font-medium cursor-pointer">Cancelar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <button onclick="startEditProduct(<%= product.id %>)" class="text-xs text-brand-600 hover:text-brand-800 font-medium opacity-0 group-hover:opacity-100 transition-opacity edit-btn-prod-<%= product.id %> cursor-pointer">Editar</button>
+                            <form action="/admin/products/<%= product.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity delete-form-prod-<%= product.id %>" onsubmit="return confirm('¿Eliminar producto? Se eliminarán también las etiquetas asociadas.');">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium cursor-pointer">Eliminar</button>
+                            </form>
+                        </div>
                     </li>
                 <% }) %>
             <% } else { %>
@@ -34,11 +45,22 @@
         <ul class="divide-y divide-ink-300">
             <% if (qualities.length > 0) { %>
                 <% qualities.forEach(quality => { %>
-                    <li class="py-3 flex justify-between items-center group">
-                        <span class="text-sm text-ink-900"><%= quality.name %></span>
-                        <form action="/admin/qualities/<%= quality.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity" onsubmit="return confirm('¿Eliminar calidad?');">
-                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
-                        </form>
+                    <li class="py-3 flex justify-between items-center group" id="quality-row-<%= quality.id %>">
+                        <div class="flex-grow flex items-center gap-3">
+                            <span class="text-sm text-ink-900 font-medium" id="quality-name-<%= quality.id %>"><%= quality.name %></span>
+                            <div class="hidden gap-2 w-full max-w-xs" id="quality-edit-container-<%= quality.id %>">
+                                <input type="text" id="quality-input-<%= quality.id %>" value="<%= quality.name %>" class="input-minimal !py-1 text-sm flex-grow">
+                                <button onclick="saveQuality(<%= quality.id %>)" class="text-xs text-brand-600 hover:text-brand-800 font-semibold cursor-pointer">Guardar</button>
+                                <button onclick="cancelEditQuality(<%= quality.id %>)" class="text-xs text-ink-500 hover:text-ink-700 font-medium cursor-pointer">Cancelar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <button onclick="startEditQuality(<%= quality.id %>)" class="text-xs text-brand-600 hover:text-brand-800 font-medium opacity-0 group-hover:opacity-100 transition-opacity edit-btn-qual-<%= quality.id %> cursor-pointer">Editar</button>
+                            <form action="/admin/qualities/<%= quality.id %>/delete" method="POST" class="ajax-delete-form opacity-0 group-hover:opacity-100 transition-opacity delete-form-qual-<%= quality.id %>" onsubmit="return confirm('¿Eliminar calidad?');">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium cursor-pointer">Eliminar</button>
+                            </form>
+                        </div>
                     </li>
                 <% }) %>
             <% } else { %>
@@ -47,4 +69,106 @@
         </ul>
     </div>
 </div>
+
+<script>
+    // Product Editing Functions
+    function startEditProduct(id) {
+        document.getElementById('product-name-' + id).classList.add('hidden');
+        document.getElementById('product-edit-container-' + id).classList.remove('hidden');
+        document.getElementById('product-edit-container-' + id).classList.add('flex');
+        
+        document.querySelector('.edit-btn-prod-' + id).classList.add('hidden');
+        document.querySelector('.delete-form-prod-' + id).classList.add('hidden');
+    }
+    
+    function cancelEditProduct(id) {
+        document.getElementById('product-name-' + id).classList.remove('hidden');
+        document.getElementById('product-edit-container-' + id).classList.add('hidden');
+        document.getElementById('product-edit-container-' + id).classList.remove('flex');
+        
+        document.querySelector('.edit-btn-prod-' + id).classList.remove('hidden');
+        document.querySelector('.delete-form-prod-' + id).classList.remove('hidden');
+    }
+    
+    function saveProduct(id) {
+        const input = document.getElementById('product-input-' + id);
+        const newName = input.value.trim();
+        if (!newName) return alert('El nombre del producto no puede estar vacío');
+        
+        fetch(`/admin/products/${id}/edit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: newName })
+        })
+        .then(async res => {
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                document.getElementById('product-name-' + id).textContent = data.name;
+                cancelEditProduct(id);
+            }
+        })
+        .catch(err => {
+            alert(err.message || 'Error al guardar');
+        });
+    }
+
+    // Quality Editing Functions
+    function startEditQuality(id) {
+        document.getElementById('quality-name-' + id).classList.add('hidden');
+        document.getElementById('quality-edit-container-' + id).classList.remove('hidden');
+        document.getElementById('quality-edit-container-' + id).classList.add('flex');
+        
+        document.querySelector('.edit-btn-qual-' + id).classList.add('hidden');
+        document.querySelector('.delete-form-qual-' + id).classList.add('hidden');
+    }
+    
+    function cancelEditQuality(id) {
+        document.getElementById('quality-name-' + id).classList.remove('hidden');
+        document.getElementById('quality-edit-container-' + id).classList.add('hidden');
+        document.getElementById('quality-edit-container-' + id).classList.remove('flex');
+        
+        document.querySelector('.edit-btn-qual-' + id).classList.remove('hidden');
+        document.querySelector('.delete-form-qual-' + id).classList.remove('hidden');
+    }
+    
+    function saveQuality(id) {
+        const input = document.getElementById('quality-input-' + id);
+        const newName = input.value.trim();
+        if (!newName) return alert('El nombre de la calidad no puede estar vacío');
+        
+        fetch(`/admin/qualities/${id}/edit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name: newName })
+        })
+        .then(async res => {
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                document.getElementById('quality-name-' + id).textContent = data.name;
+                cancelEditQuality(id);
+            }
+        })
+        .catch(err => {
+            alert(err.message || 'Error al guardar');
+        });
+    }
+</script>
 <%- include('../partials/footer') %>

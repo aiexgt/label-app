@@ -60,6 +60,24 @@ router.post('/products/:id/delete', async (req, res) => {
     }
 });
 
+router.post('/products/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        await pool.query('UPDATE products SET name = $1 WHERE id = $2', [name, id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true, name });
+        }
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.status(500).json({ error: 'Server Error' });
+        }
+        res.status(500).send('Server Error');
+    }
+});
+
 // ==========================================
 // QUALITIES
 // ==========================================
@@ -93,6 +111,24 @@ router.post('/qualities/:id/delete', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Error');
+    }
+});
+
+router.post('/qualities/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        await pool.query('UPDATE qualities SET name = $1 WHERE id = $2', [name, id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true, name });
+        }
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.status(500).json({ error: 'Server Error' });
+        }
+        res.status(500).send('Server Error');
     }
 });
 
