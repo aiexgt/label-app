@@ -311,4 +311,91 @@ router.post('/orders/:id/labor', isNotCustomer, async (req, res) => {
     }
 });
 
+// POST /orders/:id/split - Split an order
+router.post('/orders/:id/split', isNotCustomer, async (req, res) => {
+    const { id } = req.params;
+    const { splitQuantity } = req.body;
+    const qtySplit = parseInt(splitQuantity, 10);
+    
+    if (isNaN(qtySplit) || qtySplit <= 0) {
+        return res.status(400).send('Cantidad inválida');
+    }
+    
+    try {
+        await pool.query('BEGIN');
+        
+        // 1. Fetch the original order details
+        const orderQuery = await pool.query(`
+            SELECT o.*, l.qty_per_sheet 
+            FROM orders o
+            JOIN labels l ON o.label_id = l.id
+            WHERE o.id = $1
+        `, [id]);
+        
+        if (orderQuery.rows.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).send('Pedido no encontrado');
+        }
+        
+        const originalOrder = orderQuery.rows[0];
+        const oldQty = originalOrder.quantity;
+        const qty_per_sheet = originalOrder.qty_per_sheet || 1;
+        
+        if (qtySplit >= oldQty) {
+            await pool.query('ROLLBACK');
+            return res.status(400).send('La cantidad a dividir debe ser menor que la cantidad actual del pedido.');
+        }
+        
+        const newQtyA = oldQty - qtySplit;
+        const newSheetsA = Math.ceil(newQtyA / qty_per_sheet);
+        const newSheetsB = Math.ceil(qtySplit / qty_per_sheet);
+        
+        // 2. Update original order (Order A)
+        await pool.query(`
+            UPDATE orders 
+            SET quantity = $1, total_sheets = $2 
+            WHERE id = $3
+        `, [newQtyA, newSheetsA, id]);
+        
+        // 3. Insert new order (Order B) copying other fields
+        const insertQuery = `
+            INSERT INTO orders (label_id, quantity, total_sheets, status, observations, operator_id, position, labor)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+        `;
+        
+        const newOrderRes = await pool.query(insertQuery, [
+            originalOrder.label_id,
+            qtySplit,
+            newSheetsB,
+            originalOrder.status,
+            originalOrder.observations ? originalOrder.observations + ' (División)' : 'División',
+            originalOrder.operator_id,
+            originalOrder.position,
+            originalOrder.labor
+        ]);
+        
+        const newId = newOrderRes.rows[0].id;
+        
+        await pool.query('COMMIT');
+        
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ 
+                success: true, 
+                originalId: id,
+                originalQty: newQtyA,
+                originalSheets: newSheetsA,
+                newId: newId,
+                newQty: qtySplit,
+                newSheets: newSheetsB
+            });
+        }
+        res.redirect('/dashboard');
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
