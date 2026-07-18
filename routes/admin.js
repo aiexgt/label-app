@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated, isAdmin, isNotCustomer } = require('../middleware/auth');
+const { isAuthenticated, isAdmin, isNotCustomer, isManagerOrAdmin } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
@@ -209,7 +209,7 @@ router.get('/labels', isNotCustomer, async (req, res) => {
     }
 });
 
-router.post('/labels', isAdmin, upload.fields([
+router.post('/labels', isManagerOrAdmin, upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
@@ -238,7 +238,7 @@ router.post('/labels', isAdmin, upload.fields([
     }
 });
 
-router.get('/labels/:id/edit', isAdmin, async (req, res) => {
+router.get('/labels/:id/edit', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         const labelQuery = await pool.query('SELECT * FROM labels WHERE id = $1', [id]);
@@ -256,7 +256,7 @@ router.get('/labels/:id/edit', isAdmin, async (req, res) => {
     }
 });
 
-router.post('/labels/:id/edit', isAdmin, async (req, res) => {
+router.post('/labels/:id/edit', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     const { product_id, height, width, quality_id, qty_per_sheet, paper_type, tags } = req.body;
     try {
@@ -275,7 +275,7 @@ router.post('/labels/:id/edit', isAdmin, async (req, res) => {
     }
 });
 
-router.post('/labels/:id/files', isAdmin, upload.fields([
+router.post('/labels/:id/files', isManagerOrAdmin, upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
@@ -316,7 +316,7 @@ router.post('/labels/:id/files', isAdmin, upload.fields([
     res.redirect('/admin/labels');
 });
 
-router.post('/labels/:id/delete', isAdmin, async (req, res) => {
+router.post('/labels/:id/delete', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM labels WHERE id = $1', [id]);
