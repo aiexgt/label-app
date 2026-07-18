@@ -17,6 +17,18 @@
             </select>
         </div>
         
+        <% if (user.is_admin) { %>
+            <div>
+                <label class="block text-sm font-medium text-ink-900 mb-1.5">Sucursal de Destino</label>
+                <select name="branch_id" required class="input-minimal">
+                    <option value="">Seleccione una sucursal...</option>
+                    <% branches.forEach(b => { %>
+                        <option value="<%= b.id %>"><%= b.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+        <% } %>
+        
         <div>
             <label class="block text-sm font-medium text-ink-900 mb-1.5">Cantidad (Total Etiquetas)</label>
             <input type="number" name="quantity" id="quantity" required min="1" class="input-minimal w-full text-lg" placeholder="Ej. 1000" oninput="updateEstimates()">

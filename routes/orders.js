@@ -9,6 +9,27 @@ router.use(isAuthenticated);
 router.get('/dashboard', async (req, res) => {
     try {
         const isAdmin = req.session.user.is_admin;
+        
+        let selectedBranchId = 'global';
+        let branchFilter = '';
+        let queryParams = [isAdmin];
+        
+        if (isAdmin) {
+            selectedBranchId = req.query.branch_id || req.session.dashboard_branch_id || 'global';
+            req.session.dashboard_branch_id = selectedBranchId;
+            
+            if (selectedBranchId !== 'global' && selectedBranchId !== '') {
+                branchFilter = ` AND o.branch_id = $2`;
+                queryParams.push(parseInt(selectedBranchId, 10));
+            }
+        } else {
+            selectedBranchId = req.session.user.branch_id;
+            if (selectedBranchId) {
+                branchFilter = ` AND o.branch_id = $2`;
+                queryParams.push(selectedBranchId);
+            }
+        }
+
         const query = `
             SELECT o.*, 
                    l.product_id, l.qty_per_sheet, l.image_path, l.pdf_path, l.word_path, l.pdf_individual_path, l.height, l.width, l.tags, l.paper_type,
@@ -18,12 +39,13 @@ router.get('/dashboard', async (req, res) => {
             JOIN products p ON l.product_id = p.id
             LEFT JOIN users u ON o.operator_id = u.id
             LEFT JOIN qualities q ON l.quality_id = q.id
-            WHERE (o.status != 'entregado' 
+            WHERE ((o.status != 'entregado' 
                OR ($1 = TRUE AND o.updated_at >= CURRENT_TIMESTAMP - INTERVAL '7 days')
-               OR ($1 = FALSE AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')))
+               OR ($1 = FALSE AND DATE(o.updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Guatemala') = DATE(CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala'))))
+               ${branchFilter}
             ORDER BY o.position ASC, o.id ASC
         `;
-        const result = await pool.query(query, [isAdmin]);
+        const result = await pool.query(query, queryParams);
         const orders = result.rows;
 
         // Group by status (for customers, terminados is filtered to last 48 hours)
@@ -38,7 +60,14 @@ router.get('/dashboard', async (req, res) => {
             'entregado': orders.filter(o => o.status === 'entregado')
         };
 
-        res.render('dashboard', { board, isFluid: true });
+        // Fetch branches for admin selector
+        let branches = [];
+        if (isAdmin) {
+            const branchesRes = await pool.query('SELECT * FROM branches ORDER BY name');
+            branches = branchesRes.rows;
+        }
+
+        res.render('dashboard', { board, isFluid: true, branches, selectedBranchId });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -48,13 +77,21 @@ router.get('/dashboard', async (req, res) => {
 // New Order Form
 router.get('/orders/new', isNotCustomer, async (req, res) => {
     try {
+        const isAdmin = req.session.user.is_admin;
         // Fetch labels to select from
         const labelsResult = await pool.query(`
             SELECT l.id, p.name as product_name, l.height, l.width, l.qty_per_sheet, l.paper_type, l.tags
             FROM labels l
             JOIN products p ON l.product_id = p.id
         `);
-        res.render('orders/new', { labels: labelsResult.rows });
+        
+        let branches = [];
+        if (isAdmin) {
+            const branchesRes = await pool.query('SELECT * FROM branches ORDER BY name');
+            branches = branchesRes.rows;
+        }
+        
+        res.render('orders/new', { labels: labelsResult.rows, branches });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -65,6 +102,9 @@ router.get('/orders/new', isNotCustomer, async (req, res) => {
 router.post('/orders', isNotCustomer, async (req, res) => {
     const { label_id, quantity, observations, labor } = req.body;
     const hasLabor = labor === 'true' || labor === true;
+    
+    const isAdmin = req.session.user.is_admin;
+    const branch_id = isAdmin ? (req.body.branch_id || null) : (req.session.user.branch_id || null);
     
     try {
         // Calculate totals based on label info
@@ -80,11 +120,11 @@ router.post('/orders', isNotCustomer, async (req, res) => {
         const nextPosition = posQuery.rows[0].max_pos + 1;
 
         const insertQuery = `
-            INSERT INTO orders (label_id, quantity, total_sheets, observations, position, labor)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO orders (label_id, quantity, total_sheets, observations, position, labor, branch_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
         `;
         
-        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations, nextPosition, hasLabor]);
+        await pool.query(insertQuery, [label_id, quantity, total_sheets, observations, nextPosition, hasLabor, branch_id]);
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
@@ -110,7 +150,12 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
 // Delivered Orders History View
 router.get('/history', async (req, res) => {
     try {
-        let { start_date, end_date, product_id, export: exportFormat, group_by } = req.query;
+        let { start_date, end_date, product_id, branch_id, export: exportFormat, group_by } = req.query;
+        
+        // Non-admins are restricted to their assigned branch
+        if (!req.session.user.is_admin) {
+            branch_id = req.session.user.branch_id;
+        }
         
         // Default to today's date in Guatemala timezone if undefined
         const todayStr = new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Guatemala', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -164,6 +209,11 @@ router.get('/history', async (req, res) => {
         if (product_id) {
             query += ` AND l.product_id = $${paramIndex++}`;
             params.push(product_id);
+        }
+        
+        if (branch_id && branch_id !== 'global' && branch_id !== '') {
+            query += ` AND o.branch_id = $${paramIndex++}`;
+            params.push(parseInt(branch_id, 10));
         }
         
         if (isGrouped) {
@@ -245,6 +295,11 @@ router.get('/history', async (req, res) => {
             sumParams.push(product_id);
         }
         
+        if (branch_id && branch_id !== 'global' && branch_id !== '') {
+            sumQuery += ` AND o.branch_id = $${sumParamIndex++}`;
+            sumParams.push(parseInt(branch_id, 10));
+        }
+        
         const sumResult = await pool.query(sumQuery, sumParams);
         const totalEtiquetasGeneral = sumResult.rows[0].total_general;
         const totalEtiquetasLabor = sumResult.rows[0].total_labor;
@@ -275,18 +330,22 @@ router.get('/history', async (req, res) => {
 
         // Fetch all products for the filter dropdown
         const productsResult = await pool.query('SELECT * FROM products ORDER BY name');
+        // Fetch all branches for admin filter
+        const branchesResult = await pool.query('SELECT * FROM branches ORDER BY name');
         
-        const filters = { start_date, end_date, product_id, group_by: preferredGroupBy };
+        const filters = { start_date, end_date, product_id, branch_id, group_by: preferredGroupBy };
         const queryParams = new URLSearchParams();
         if (start_date) queryParams.set('start_date', start_date);
         if (end_date) queryParams.set('end_date', end_date);
         if (product_id) queryParams.set('product_id', product_id);
+        if (branch_id && branch_id !== 'global') queryParams.set('branch_id', branch_id);
         if (isGrouped) queryParams.set('group_by', 'true');
         const queryString = queryParams.toString();
 
         res.render('history', { 
             orders: result.rows, 
             products: productsResult.rows,
+            branches: branchesResult.rows,
             filters,
             queryString,
             totalEtiquetasGeneral,

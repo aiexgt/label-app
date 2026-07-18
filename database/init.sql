@@ -13,13 +13,19 @@ DROP TYPE IF EXISTS status_enum CASCADE;
 -- Create ENUM for order status
 CREATE TYPE status_enum AS ENUM ('backlog', 'pendiente', 'imprimiendo', 'impreso', 'cortando', 'terminado', 'por_entregar', 'entregado');
 
+CREATE TABLE branches (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
 -- Create Tables
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
-    is_customer BOOLEAN DEFAULT FALSE
+    is_customer BOOLEAN DEFAULT FALSE,
+    branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL
 );
 
 CREATE TABLE products (
@@ -58,6 +64,7 @@ CREATE TABLE orders (
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     position INTEGER DEFAULT 0,
     labor BOOLEAN DEFAULT TRUE,
+    branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

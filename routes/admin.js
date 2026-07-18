@@ -27,7 +27,12 @@ router.get('/products', async (req, res) => {
     try {
         const productsResult = await pool.query('SELECT * FROM products ORDER BY id DESC');
         const qualitiesResult = await pool.query('SELECT * FROM qualities ORDER BY id DESC');
-        res.render('admin/products', { products: productsResult.rows, qualities: qualitiesResult.rows });
+        const branchesResult = await pool.query('SELECT * FROM branches ORDER BY id DESC');
+        res.render('admin/products', { 
+            products: productsResult.rows, 
+            qualities: qualitiesResult.rows,
+            branches: branchesResult.rows
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -119,6 +124,50 @@ router.post('/qualities/:id/edit', async (req, res) => {
     const { name } = req.body;
     try {
         await pool.query('UPDATE qualities SET name = $1 WHERE id = $2', [name, id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.json({ success: true, name });
+        }
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+            return res.status(500).json({ error: 'Server Error' });
+        }
+        res.status(500).send('Server Error');
+    }
+});
+
+// ==========================================
+// BRANCHES
+// ==========================================
+router.post('/branches', async (req, res) => {
+    const { name } = req.body;
+    try {
+        await pool.query('INSERT INTO branches (name) VALUES ($1)', [name]);
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/branches/:id/delete', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM branches WHERE id = $1', [id]);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) return res.json({ success: true });
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error');
+    }
+});
+
+router.post('/branches/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        await pool.query('UPDATE branches SET name = $1 WHERE id = $2', [name, id]);
         if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
             return res.json({ success: true, name });
         }
@@ -285,8 +334,14 @@ router.post('/labels/:id/delete', async (req, res) => {
 // ==========================================
 router.get('/users', async (req, res) => {
     try {
-        const usersResult = await pool.query('SELECT id, username, is_admin, is_customer FROM users ORDER BY id');
-        res.render('admin/users', { users: usersResult.rows });
+        const usersResult = await pool.query(`
+            SELECT u.id, u.username, u.is_admin, u.is_customer, u.branch_id, b.name as branch_name
+            FROM users u
+            LEFT JOIN branches b ON u.branch_id = b.id
+            ORDER BY u.id
+        `);
+        const branchesResult = await pool.query('SELECT * FROM branches ORDER BY name');
+        res.render('admin/users', { users: usersResult.rows, branches: branchesResult.rows });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -295,13 +350,14 @@ router.get('/users', async (req, res) => {
 
 // Create User
 router.post('/users', async (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password, role, branch_id } = req.body;
+    const finalBranchId = role === 'admin' ? null : (branch_id || null);
     try {
         const bcrypt = require('bcrypt');
         const hash = await bcrypt.hash(password, 10);
         await pool.query(
-            'INSERT INTO users (username, password_hash, is_admin, is_customer) VALUES ($1, $2, $3, $4)',
-            [username, hash, role === 'admin', role === 'customer']
+            'INSERT INTO users (username, password_hash, is_admin, is_customer, branch_id) VALUES ($1, $2, $3, $4, $5)',
+            [username, hash, role === 'admin', role === 'customer', finalBranchId]
         );
         res.redirect('/admin/users');
     } catch (err) {
@@ -333,9 +389,10 @@ router.post('/users/:id/role', async (req, res) => {
 router.get('/users/:id/edit', async (req, res) => {
     const { id } = req.params;
     try {
-        const userResult = await pool.query('SELECT id, username, is_admin, is_customer FROM users WHERE id = $1', [id]);
+        const userResult = await pool.query('SELECT id, username, is_admin, is_customer, branch_id FROM users WHERE id = $1', [id]);
         if (userResult.rows.length === 0) return res.status(404).send('Usuario no encontrado');
-        res.render('admin/users_edit', { targetUser: userResult.rows[0] });
+        const branchesResult = await pool.query('SELECT * FROM branches ORDER BY name');
+        res.render('admin/users_edit', { targetUser: userResult.rows[0], branches: branchesResult.rows });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -345,17 +402,18 @@ router.get('/users/:id/edit', async (req, res) => {
 // Edit User Action (POST)
 router.post('/users/:id/edit', async (req, res) => {
     const { id } = req.params;
-    const { username, password, role } = req.body;
+    const { username, password, role, branch_id } = req.body;
     try {
         const bcrypt = require('bcrypt');
         
         let isSelf = (parseInt(id) === req.session.user.id);
         let finalAdmin = isSelf ? true : (role === 'admin');
         let finalCustomer = isSelf ? false : (role === 'customer');
+        let finalBranchId = finalAdmin ? null : (branch_id || null);
         
-        let query = 'UPDATE users SET username = $1, is_admin = $2, is_customer = $3';
-        const params = [username, finalAdmin, finalCustomer];
-        let paramIndex = 4;
+        let query = 'UPDATE users SET username = $1, is_admin = $2, is_customer = $3, branch_id = $4';
+        const params = [username, finalAdmin, finalCustomer, finalBranchId];
+        let paramIndex = 5;
         
         if (password && password.trim() !== '') {
             const hash = await bcrypt.hash(password, 10);
@@ -373,6 +431,7 @@ router.post('/users/:id/edit', async (req, res) => {
             req.session.user.username = username;
             req.session.user.is_admin = finalAdmin;
             req.session.user.is_customer = finalCustomer;
+            req.session.user.branch_id = finalBranchId;
         }
         
         res.redirect('/admin/users');

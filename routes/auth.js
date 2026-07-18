@@ -24,7 +24,8 @@ router.post('/login', async (req, res) => {
                     id: user.id,
                     username: user.username,
                     is_admin: user.is_admin,
-                    is_customer: user.is_customer
+                    is_customer: user.is_customer,
+                    branch_id: user.branch_id
                 };
                 return res.redirect('/dashboard');
             }

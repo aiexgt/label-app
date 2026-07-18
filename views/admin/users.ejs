@@ -17,10 +17,19 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-ink-900 mb-1">Rol / Tipo de Usuario</label>
-                <select name="role" required class="input-minimal">
+                <select name="role" id="role-select" required class="input-minimal" onchange="toggleBranchSelect()">
                     <option value="operator">Operador</option>
                     <option value="admin">Administrador</option>
                     <option value="customer">Cliente</option>
+                </select>
+            </div>
+            <div id="branch-select-container">
+                <label class="block text-xs font-medium text-ink-900 mb-1">Sucursal Asignada</label>
+                <select name="branch_id" class="input-minimal">
+                    <option value="">Ninguna / Global</option>
+                    <% branches.forEach(b => { %>
+                        <option value="<%= b.id %>"><%= b.name %></option>
+                    <% }) %>
                 </select>
             </div>
             <div class="pt-2">
@@ -38,6 +47,7 @@
                     <p class="text-sm font-medium text-ink-900"><%= u.username %></p>
                     <p class="text-[11px] text-ink-500 uppercase tracking-wider">
                         <%= u.is_admin ? 'Administrador' : (u.is_customer ? 'Cliente' : 'Operador') %>
+                        <%= u.branch_name ? ` • ${u.branch_name}` : '' %>
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -63,4 +73,18 @@
     
     </div>
 </div>
+
+<script>
+    function toggleBranchSelect() {
+        const role = document.getElementById('role-select').value;
+        const container = document.getElementById('branch-select-container');
+        if (role === 'admin') {
+            container.style.display = 'none';
+            container.querySelector('select').value = '';
+        } else {
+            container.style.display = 'block';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', toggleBranchSelect);
+</script>
 <%- include('../partials/footer') %>
