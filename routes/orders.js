@@ -28,11 +28,13 @@ router.get('/dashboard', async (req, res) => {
 
         // Group by status (for customers, terminados is filtered to last 48 hours)
         const board = {
+            'backlog': orders.filter(o => o.status === 'backlog'),
             'pendiente': orders.filter(o => o.status === 'pendiente'),
             'imprimiendo': orders.filter(o => o.status === 'imprimiendo'),
             'impreso': orders.filter(o => o.status === 'impreso'),
             'cortando': orders.filter(o => o.status === 'cortando'),
             'terminado': orders.filter(o => o.status === 'terminado' && (!req.session.user.is_customer || (Date.now() - new Date(o.updated_at).getTime()) <= 48 * 60 * 60 * 1000)),
+            'por_entregar': orders.filter(o => o.status === 'por_entregar'),
             'entregado': orders.filter(o => o.status === 'entregado')
         };
 
@@ -74,7 +76,7 @@ router.post('/orders', isNotCustomer, async (req, res) => {
         const total_sheets = Math.ceil(quantity / qty_per_sheet);
 
         // Fetch max position to place new order at the bottom
-        const posQuery = await pool.query("SELECT COALESCE(MAX(position), 0) as max_pos FROM orders WHERE status = 'pendiente'");
+        const posQuery = await pool.query("SELECT COALESCE(MAX(position), 0) as max_pos FROM orders WHERE status = 'backlog'");
         const nextPosition = posQuery.rows[0].max_pos + 1;
 
         const insertQuery = `

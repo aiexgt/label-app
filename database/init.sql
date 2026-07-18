@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS supplies CASCADE;
 DROP TYPE IF EXISTS status_enum CASCADE;
 
 -- Create ENUM for order status
-CREATE TYPE status_enum AS ENUM ('pendiente', 'imprimiendo', 'impreso', 'cortando', 'terminado', 'entregado');
+CREATE TYPE status_enum AS ENUM ('backlog', 'pendiente', 'imprimiendo', 'impreso', 'cortando', 'terminado', 'por_entregar', 'entregado');
 
 -- Create Tables
 CREATE TABLE users (
@@ -53,7 +53,7 @@ CREATE TABLE orders (
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     quantity INTEGER NOT NULL,
     total_sheets INTEGER NOT NULL,
-    status status_enum DEFAULT 'pendiente',
+    status status_enum DEFAULT 'backlog',
     observations TEXT,
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     position INTEGER DEFAULT 0,
