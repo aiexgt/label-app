@@ -2,80 +2,82 @@
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-ink-900 tracking-tight">Etiquetas</h1>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="panel lg:col-span-1 h-fit">
-        <h2 class="text-sm font-medium text-ink-900 mb-4 pb-3 border-b border-ink-300">Añadir Etiqueta</h2>
-        <form action="/admin/labels" method="POST" enctype="multipart/form-data" class="space-y-4">
-            <div>
-                <label class="block text-xs font-medium text-ink-900 mb-1">Producto</label>
-                <select name="product_id" id="product_id_new" required class="w-full font-medium">
-                    <option value="">Seleccione un producto...</option>
-                    <% products.forEach(p => { %>
-                        <option value="<%= p.id %>"><%= p.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 <%= user.is_admin ? 'lg:grid-cols-3' : '' %> gap-6">
+    <% if (user.is_admin) { %>
+        <div class="panel lg:col-span-1 h-fit">
+            <h2 class="text-sm font-medium text-ink-900 mb-4 pb-3 border-b border-ink-300">Añadir Etiqueta</h2>
+            <form action="/admin/labels" method="POST" enctype="multipart/form-data" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Alto (cm)</label>
-                    <input type="number" step="0.01" name="height" required class="input-minimal">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Ancho (cm)</label>
-                    <input type="number" step="0.01" name="width" required class="input-minimal">
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-ink-900 mb-1">Calidad</label>
-                <select name="quality_id" class="input-minimal">
-                    <option value="">Ninguna</option>
-                    <% qualities.forEach(q => { %>
-                        <option value="<%= q.id %>"><%= q.name %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
-                    <input type="number" name="qty_per_sheet" value="1" required class="input-minimal">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-ink-900 mb-1">Tipo Papel</label>
-                    <select name="paper_type" required class="input-minimal">
-                        <option value="Matte">Matte</option>
-                        <option value="Glossy">Glossy</option>
+                    <label class="block text-xs font-medium text-ink-900 mb-1">Producto</label>
+                    <select name="product_id" id="product_id_new" required class="w-full font-medium">
+                        <option value="">Seleccione un producto...</option>
+                        <% products.forEach(p => { %>
+                            <option value="<%= p.id %>"><%= p.name %></option>
+                        <% }) %>
                     </select>
                 </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-xs font-medium text-ink-900 mb-1">Tags (separados por comas)</label>
-                <input type="text" name="tags" placeholder="Ej. Urgente, VIP, Troquelado" class="input-minimal">
-            </div>
-            <div class="space-y-3 pt-2">
-                <label class="block text-xs font-medium text-ink-900">Archivos</label>
-                <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">Diseño (Imagen o PDF)</span>
-                    <input type="file" name="image" accept="image/*,application/pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-ink-900 mb-1">Alto (cm)</label>
+                        <input type="number" step="0.01" name="height" required class="input-minimal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-ink-900 mb-1">Ancho (cm)</label>
+                        <input type="number" step="0.01" name="width" required class="input-minimal">
+                    </div>
                 </div>
                 <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">DOC (Word)</span>
-                    <input type="file" name="word" accept=".doc,.docx" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    <label class="block text-xs font-medium text-ink-900 mb-1">Calidad</label>
+                    <select name="quality_id" class="input-minimal">
+                        <option value="">Ninguna</option>
+                        <% qualities.forEach(q => { %>
+                            <option value="<%= q.id %>"><%= q.name %></option>
+                        <% }) %>
+                    </select>
                 </div>
-                <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Grupo</span>
-                    <input type="file" name="pdf" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-medium text-ink-900 mb-1">Cant. por Hoja</label>
+                        <input type="number" name="qty_per_sheet" value="1" required class="input-minimal">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-ink-900 mb-1">Tipo Papel</label>
+                        <select name="paper_type" required class="input-minimal">
+                            <option value="Matte">Matte</option>
+                            <option value="Glossy">Glossy</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <span class="text-[10px] text-ink-500 block mb-0.5">PDF Individual</span>
-                    <input type="file" name="pdf_individual" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                <div class="mt-4">
+                    <label class="block text-xs font-medium text-ink-900 mb-1">Tags (separados por comas)</label>
+                    <input type="text" name="tags" placeholder="Ej. Urgente, VIP, Troquelado" class="input-minimal">
                 </div>
-            </div>
-            <div class="pt-3">
-                <button type="submit" class="w-full btn-minimal">Guardar Etiqueta</button>
-            </div>
-        </form>
-    </div>
-    <div class="panel lg:col-span-2 p-0 overflow-hidden">
+                <div class="space-y-3 pt-2">
+                    <label class="block text-xs font-medium text-ink-900">Archivos</label>
+                    <div>
+                        <span class="text-[10px] text-ink-500 block mb-0.5">Diseño (Imagen o PDF)</span>
+                        <input type="file" name="image" accept="image/*,application/pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-ink-500 block mb-0.5">DOC (Word)</span>
+                        <input type="file" name="word" accept=".doc,.docx" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-ink-500 block mb-0.5">PDF Grupo</span>
+                        <input type="file" name="pdf" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-ink-500 block mb-0.5">PDF Individual</span>
+                        <input type="file" name="pdf_individual" accept=".pdf" class="block w-full text-xs text-ink-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer">
+                    </div>
+                </div>
+                <div class="pt-3">
+                    <button type="submit" class="w-full btn-minimal">Guardar Etiqueta</button>
+                </div>
+            </form>
+        </div>
+    <% } %>
+    <div class="panel <%= user.is_admin ? 'lg:col-span-2' : 'w-full' %> p-0 overflow-hidden">
         <div class="px-6 py-4 border-b border-ink-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h3 class="text-sm font-medium text-ink-900">Directorio de Etiquetas</h3>
             <div class="relative w-full sm:w-64">
@@ -91,7 +93,9 @@
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Tamaño/Hoja</th>
 
                         <th class="px-6 py-3 text-left text-[11px] font-semibold text-ink-500 uppercase tracking-wider">Archivos</th>
-                        <th class="px-6 py-3 text-right text-[11px] font-semibold text-ink-500 uppercase tracking-wider"></th>
+                        <% if (user.is_admin) { %>
+                            <th class="px-6 py-3 text-right text-[11px] font-semibold text-ink-500 uppercase tracking-wider"></th>
+                        <% } %>
                     </tr>
                 </thead>
                 <tbody id="labels-table-body" class="bg-panel divide-y divide-ink-300">
@@ -116,25 +120,29 @@
                                     <% if (label.pdf_path) { %><a href="<%= label.pdf_path %>" target="_blank" class="hover:underline">PDF Grupo</a><% } %>
                                     <% if (label.pdf_individual_path) { %><a href="<%= label.pdf_individual_path %>" target="_blank" class="hover:underline">PDF Individual</a><% } %>
                                 </div>
-                                <details class="text-[10px] text-ink-500">
-                                    <summary class="cursor-pointer hover:text-ink-900 mb-1">Actualizar archivos...</summary>
-                                    <form action="/admin/labels/<%= label.id %>/files" method="POST" enctype="multipart/form-data" class="flex flex-col gap-1 p-1 bg-surface rounded border border-ink-200">
-                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DISEÑO:</span><input type="file" name="image" accept="image/*,application/pdf" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DOC:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF GRUPO:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
-                                        <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF INDIV:</span><input type="file" name="pdf_individual" accept=".pdf" class="w-32"></div>
-                                        <button type="submit" class="text-brand-600 font-medium text-left mt-1 hover:underline">Subir</button>
-                                    </form>
-                                </details>
+                                <% if (user.is_admin) { %>
+                                    <details class="text-[10px] text-ink-500">
+                                        <summary class="cursor-pointer hover:text-ink-900 mb-1">Actualizar archivos...</summary>
+                                        <form action="/admin/labels/<%= label.id %>/files" method="POST" enctype="multipart/form-data" class="flex flex-col gap-1 p-1 bg-surface rounded border border-ink-200">
+                                            <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DISEÑO:</span><input type="file" name="image" accept="image/*,application/pdf" class="w-32"></div>
+                                            <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">DOC:</span><input type="file" name="word" accept=".doc,.docx" class="w-32"></div>
+                                            <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF GRUPO:</span><input type="file" name="pdf" accept=".pdf" class="w-32"></div>
+                                            <div class="flex items-center justify-between"><span class="w-14 text-[9px] font-semibold text-ink-700">PDF INDIV:</span><input type="file" name="pdf_individual" accept=".pdf" class="w-32"></div>
+                                            <button type="submit" class="text-brand-600 font-medium text-left mt-1 hover:underline">Subir</button>
+                                        </form>
+                                    </details>
+                                <% } %>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
-                                <div class="flex flex-col gap-2 items-end">
-                                    <a href="/admin/labels/<%= label.id %>/edit" class="text-brand-600 hover:text-brand-800 transition-colors">Editar</a>
-                                    <form action="/admin/labels/<%= label.id %>/delete" method="POST" class="ajax-delete-form" onsubmit="return confirm('¿Eliminar etiqueta?');">
-                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
-                                    </form>
-                                </div>
-                            </td>
+                            <% if (user.is_admin) { %>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
+                                    <div class="flex flex-col gap-2 items-end">
+                                        <a href="/admin/labels/<%= label.id %>/edit" class="text-brand-600 hover:text-brand-800 transition-colors">Editar</a>
+                                        <form action="/admin/labels/<%= label.id %>/delete" method="POST" class="ajax-delete-form" onsubmit="return confirm('¿Eliminar etiqueta?');">
+                                            <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            <% } %>
                         </tr>
                     <% }) %>
                 </tbody>

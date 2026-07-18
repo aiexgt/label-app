@@ -20,8 +20,9 @@
             <div>
                 <label class="block text-sm font-medium text-ink-900 mb-1.5">Rol / Tipo de Usuario</label>
                 <select name="role" id="role-select" required class="input-minimal" onchange="toggleBranchSelect()">
-                    <option value="operator" <%= !targetUser.is_admin && !targetUser.is_customer ? 'selected' : '' %>>Operador</option>
+                    <option value="operator" <%= !targetUser.is_admin && !targetUser.is_customer && !targetUser.is_manager ? 'selected' : '' %>>Operador</option>
                     <option value="admin" <%= targetUser.is_admin ? 'selected' : '' %>>Administrador</option>
+                    <option value="manager" <%= targetUser.is_manager ? 'selected' : '' %>>Encargado</option>
                     <option value="customer" <%= targetUser.is_customer ? 'selected' : '' %>>Cliente</option>
                 </select>
             </div>

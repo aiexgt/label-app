@@ -48,7 +48,7 @@
             
             <div class="p-4 flex-1 overflow-y-auto sortable-list" data-status="<%= col.id %>">
                 <% (board[col.id] || []).forEach(order => { %>
-                    <div class="mb-3 bg-panel p-4 rounded-lg shadow-subtle border border-ink-300 cursor-grab hover:border-brand-300 transition-colors group relative" data-id="<%= order.id %>">
+                    <div class="mb-3 bg-panel p-4 rounded-lg shadow-subtle border border-ink-300 <%= user.is_customer ? '' : 'cursor-grab hover:border-brand-300' %> transition-colors group relative" data-id="<%= order.id %>">
                         <div class="flex justify-between items-start mb-3">
                             <span class="text-[11px] font-mono font-medium text-ink-500">#<%= order.id %></span>
                             <div class="flex items-center gap-1.5">
@@ -71,7 +71,7 @@
                             </div>
                         </div>
                         
-                        <% if (user.is_admin) { %>
+                        <% if (user.is_admin || user.is_manager) { %>
                             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <form action="/orders/<%= order.id %>/delete" method="POST" class="ajax-delete-form" onsubmit="return confirm('¿Seguro que deseas ELIMINAR este pedido por completo?');">
                                     <button type="submit" class="text-red-500 hover:text-red-700 bg-panel rounded-full p-1 shadow-sm border border-red-200 dark:border-red-900/50" title="Eliminar pedido">

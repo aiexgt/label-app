@@ -25,6 +25,7 @@ router.post('/login', async (req, res) => {
                     username: user.username,
                     is_admin: user.is_admin,
                     is_customer: user.is_customer,
+                    is_manager: user.is_manager,
                     branch_id: user.branch_id
                 };
                 return res.redirect('/dashboard');

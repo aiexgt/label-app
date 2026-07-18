@@ -20,6 +20,7 @@
                 <select name="role" id="role-select" required class="input-minimal" onchange="toggleBranchSelect()">
                     <option value="operator">Operador</option>
                     <option value="admin">Administrador</option>
+                    <option value="manager">Encargado</option>
                     <option value="customer">Cliente</option>
                 </select>
             </div>
@@ -46,16 +47,17 @@
                 <div>
                     <p class="text-sm font-medium text-ink-900"><%= u.username %></p>
                     <p class="text-[11px] text-ink-500 uppercase tracking-wider">
-                        <%= u.is_admin ? 'Administrador' : (u.is_customer ? 'Cliente' : 'Operador') %>
+                        <%= u.is_admin ? 'Administrador' : (u.is_customer ? 'Cliente' : (u.is_manager ? 'Encargado' : 'Operador')) %>
                         <%= u.branch_name ? ` • ${u.branch_name}` : '' %>
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
                     <% if (u.id !== user.id) { %>
                         <form action="/admin/users/<%= u.id %>/role" method="POST" class="inline-flex">
-                            <select name="role" onchange="this.form.submit()" class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-2 focus:ring-0 focus:border-brand-500 transition-colors">
-                                <option value="operator" <%= !u.is_admin && !u.is_customer ? 'selected' : '' %>>Operador</option>
+                            <select name="role" onchange="this.form.submit()" class="text-xs rounded border-ink-300 bg-panel text-ink-900 py-1 px-2 focus:ring-0 focus:border-brand-500 transition-colors cursor-pointer">
+                                <option value="operator" <%= !u.is_admin && !u.is_customer && !u.is_manager ? 'selected' : '' %>>Operador</option>
                                 <option value="admin" <%= u.is_admin ? 'selected' : '' %>>Administrador</option>
+                                <option value="manager" <%= u.is_manager ? 'selected' : '' %>>Encargado</option>
                                 <option value="customer" <%= u.is_customer ? 'selected' : '' %>>Cliente</option>
                             </select>
                         </form>

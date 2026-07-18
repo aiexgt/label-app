@@ -182,74 +182,78 @@
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-6">
                             <a href="/dashboard" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Tablero</a>
-                            <% if (!user.is_customer) { %>
-                                <a href="/orders/new" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Nuevo Pedido</a>
-                                <a href="/inventory" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Inventario</a>
-                                <a href="/inventory/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Inventario</a>
-                            <% } %>
-                            <a href="/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Entregados</a>
-                            <% if (user.is_admin) { %>
-                                <a href="/admin/labels" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Etiquetas</a>
-                                <a href="/admin/products" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Catálogo</a>
-                                <a href="/admin/users" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Usuarios</a>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-                <div class="hidden md:block">
-                    <div class="flex items-center space-x-4">
-                        <span class="text-xs font-medium text-ink-500"><%= user.username %> <%= user.is_admin ? '(Admin)' : (user.is_customer ? '(Cliente)' : '') %></span>
-                        <!-- Theme Toggle Button -->
-                        <button id="theme-toggle" type="button" class="text-ink-500 hover:text-ink-900 transition-colors p-1.5 rounded-full hover:bg-brand-50" title="Alternar tema">
-                            <svg id="theme-toggle-light-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                            <svg id="theme-toggle-dark-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        </button>
-                        <a href="/auth/logout" class="text-xs text-ink-500 hover:text-ink-900 transition-colors">Salir</a>
-                    </div>
-                </div>
-                <div class="-mr-2 flex md:hidden items-center gap-2">
-                    <!-- Theme Toggle Button Mobile -->
-                    <button id="theme-toggle-mobile" type="button" class="text-ink-500 hover:text-ink-900 transition-colors p-1.5 rounded-full hover:bg-brand-50" title="Alternar tema">
-                        <svg id="theme-toggle-light-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                        <svg id="theme-toggle-dark-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    </button>
-                    <!-- Mobile menu button -->
-                    <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-ink-500 hover:text-ink-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500" aria-expanded="false">
-                        <span class="sr-only">Abrir menú principal</span>
-                        <svg x-show="!mobileMenuOpen" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                        <svg x-show="mobileMenuOpen" style="display: none;" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile menu, show/hide based on menu state. -->
-        <div x-show="mobileMenuOpen" style="display: none;" class="md:hidden border-t border-ink-300 bg-panel max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="/dashboard" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Tablero</a>
-                <% if (!user.is_customer) { %>
-                    <a href="/orders/new" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Nuevo Pedido</a>
-                    <a href="/inventory" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Inventario</a>
-                    <a href="/inventory/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Inventario</a>
-                <% } %>
-                <a href="/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Entregados</a>
-                <% if (user.is_admin) { %>
-                    <a href="/admin/labels" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Etiquetas</a>
-                    <a href="/admin/products" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Catálogo</a>
-                    <a href="/admin/users" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Usuarios</a>
-                <% } %>
-            </div>
-            <div class="pt-4 pb-3 border-t border-ink-300">
-                <div class="flex items-center px-5">
-                    <div class="ml-3">
-                        <div class="text-base font-medium text-ink-900"><%= user.username %></div>
-                        <div class="text-sm font-medium text-ink-500"><%= user.is_admin ? 'Administrador' : (user.is_customer ? 'Cliente' : 'Operador') %></div>
-                    </div>
-                </div>
+                             <% if (!user.is_customer) { %>
+                                 <a href="/orders/new" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Nuevo Pedido</a>
+                                 <a href="/inventory" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Inventario</a>
+                             <% } %>
+                             <a href="/inventory/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Inventario</a>
+                             <a href="/history" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Historial Entregados</a>
+                             <% if (!user.is_customer) { %>
+                                 <a href="/admin/labels" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Etiquetas</a>
+                             <% } %>
+                             <% if (user.is_admin) { %>
+                                 <a href="/admin/products" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Catálogo</a>
+                                 <a href="/admin/users" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Usuarios</a>
+                             <% } %>
+                         </div>
+                     </div>
+                 </div>
+                 <div class="hidden md:block">
+                     <div class="flex items-center space-x-4">
+                         <span class="text-xs font-medium text-ink-500"><%= user.username %> <%= user.is_admin ? '(Admin)' : (user.is_customer ? '(Cliente)' : (user.is_manager ? '(Encargado)' : '(Operador)')) %></span>
+                         <!-- Theme Toggle Button -->
+                         <button id="theme-toggle" type="button" class="text-ink-500 hover:text-ink-900 transition-colors p-1.5 rounded-full hover:bg-brand-50" title="Alternar tema">
+                             <svg id="theme-toggle-light-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                             <svg id="theme-toggle-dark-icon" class="hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                         </button>
+                         <a href="/auth/logout" class="text-xs text-ink-500 hover:text-ink-900 transition-colors">Salir</a>
+                     </div>
+                 </div>
+                 <div class="-mr-2 flex md:hidden items-center gap-2">
+                     <!-- Theme Toggle Button Mobile -->
+                     <button id="theme-toggle-mobile" type="button" class="text-ink-500 hover:text-ink-900 transition-colors p-1.5 rounded-full hover:bg-brand-50" title="Alternar tema">
+                         <svg id="theme-toggle-light-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                         <svg id="theme-toggle-dark-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                     </button>
+                     <!-- Mobile menu button -->
+                     <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-ink-500 hover:text-ink-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500" aria-expanded="false">
+                         <span class="sr-only">Abrir menú principal</span>
+                         <svg x-show="!mobileMenuOpen" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                         </svg>
+                         <svg x-show="mobileMenuOpen" style="display: none;" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                         </svg>
+                     </button>
+                 </div>
+             </div>
+         </div>
+ 
+         <!-- Mobile menu, show/hide based on menu state. -->
+         <div x-show="mobileMenuOpen" style="display: none;" class="md:hidden border-t border-ink-300 bg-panel max-h-[calc(100vh-3.5rem)] overflow-y-auto shadow-xl">
+             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                 <a href="/dashboard" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Tablero</a>
+                 <% if (!user.is_customer) { %>
+                     <a href="/orders/new" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Nuevo Pedido</a>
+                     <a href="/inventory" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Inventario</a>
+                 <% } %>
+                 <a href="/inventory/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Inventario</a>
+                 <a href="/history" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Historial Entregados</a>
+                 <% if (!user.is_customer) { %>
+                     <a href="/admin/labels" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Etiquetas</a>
+                 <% } %>
+                 <% if (user.is_admin) { %>
+                     <a href="/admin/products" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Catálogo</a>
+                     <a href="/admin/users" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Usuarios</a>
+                 <% } %>
+             </div>
+             <div class="pt-4 pb-3 border-t border-ink-300">
+                 <div class="flex items-center px-5">
+                     <div class="ml-3">
+                         <div class="text-base font-medium text-ink-900"><%= user.username %></div>
+                         <div class="text-sm font-medium text-ink-500"><%= user.is_admin ? 'Administrador' : (user.is_customer ? 'Cliente' : (user.is_manager ? 'Encargado' : 'Operador')) %></div>
+                     </div>
+                 </div>
                 <div class="mt-3 px-2 space-y-1">
                     <a href="/auth/logout" class="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50">Cerrar Sesión</a>
                 </div>

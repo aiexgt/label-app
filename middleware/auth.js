@@ -25,8 +25,20 @@ const isNotCustomer = (req, res, next) => {
     res.status(403).send('Forbidden: Customers do not have access to this page');
 };
 
+// Middleware to check if user is manager or admin
+const isManagerOrAdmin = (req, res, next) => {
+    if (req.session && req.session.user && (req.session.user.is_admin || req.session.user.is_manager)) {
+        return next();
+    }
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+        return res.status(403).json({ success: false, error: 'Acceso denegado: Se requiere rol de Encargado o Administrador' });
+    }
+    res.status(403).send('Forbidden: Managers or Admins only');
+};
+
 module.exports = {
     isAuthenticated,
     isAdmin,
-    isNotCustomer
+    isNotCustomer,
+    isManagerOrAdmin
 };

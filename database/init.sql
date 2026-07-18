@@ -25,6 +25,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
     is_customer BOOLEAN DEFAULT FALSE,
+    is_manager BOOLEAN DEFAULT FALSE,
     branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL
 );
 
@@ -43,25 +44,26 @@ CREATE TABLE labels (
     product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
     height NUMERIC(10,2) NOT NULL,
     width NUMERIC(10,2) NOT NULL,
-    image_path VARCHAR(255),
-    word_path VARCHAR(255),
-    pdf_path VARCHAR(255),
-    pdf_individual_path VARCHAR(255),
     quality_id INTEGER REFERENCES qualities(id) ON DELETE SET NULL,
-    qty_per_sheet INTEGER NOT NULL DEFAULT 1,
+    qty_per_sheet INTEGER DEFAULT 1,
     paper_type VARCHAR(50) DEFAULT 'Matte',
-    tags VARCHAR(255)
+    image_path VARCHAR(255),
+    pdf_path VARCHAR(255),
+    word_path VARCHAR(255),
+    pdf_individual_path VARCHAR(255),
+    tags TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     label_id INTEGER REFERENCES labels(id) ON DELETE CASCADE,
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     quantity INTEGER NOT NULL,
     total_sheets INTEGER NOT NULL,
     status status_enum DEFAULT 'backlog',
     observations TEXT,
     operator_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     position INTEGER DEFAULT 0,
     labor BOOLEAN DEFAULT TRUE,
     branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL,
@@ -83,6 +85,7 @@ CREATE TABLE supply_movements (
     type VARCHAR(10) NOT NULL CHECK (type IN ('entrada', 'salida')),
     quantity NUMERIC(10,2) NOT NULL,
     concept VARCHAR(255),
+    branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

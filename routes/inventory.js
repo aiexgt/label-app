@@ -3,10 +3,10 @@ const router = express.Router();
 const pool = require('../db');
 const { isAuthenticated, isAdmin, isNotCustomer } = require('../middleware/auth');
 
-router.use(isAuthenticated, isNotCustomer);
+router.use(isAuthenticated);
 
 // GET /inventory - Screen 1: Unified Supplies Catalog
-router.get('/', async (req, res) => {
+router.get('/', isNotCustomer, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM supplies ORDER BY name ASC');
         res.render('inventory/index', { supplies: result.rows });
@@ -29,8 +29,8 @@ router.post('/', isAdmin, async (req, res) => {
         
         // Record initial inventory movement
         await pool.query(
-            'INSERT INTO supply_movements (supply_id, user_id, type, quantity, concept) VALUES ($1, $2, $3, $4, $5)',
-            [supplyId, req.session.user.id, 'entrada', parseFloat(quantity) || 0, 'Inventario inicial']
+            'INSERT INTO supply_movements (supply_id, user_id, type, quantity, concept, branch_id) VALUES ($1, $2, $3, $4, $5, $6)',
+            [supplyId, req.session.user.id, 'entrada', parseFloat(quantity) || 0, 'Inventario inicial', req.session.user.branch_id || null]
         );
         await pool.query('COMMIT');
         res.redirect('/inventory');
@@ -90,7 +90,8 @@ router.post('/:id/delete', isAdmin, async (req, res) => {
 });
 
 // GET /inventory/:id/adjust - Screen 2: Adjust Stock Form
-router.get('/:id/adjust', async (req, res) => {
+// GET /inventory/:id/adjust - Screen 2: Adjust Stock Form
+router.get('/:id/adjust', isNotCustomer, async (req, res) => {
     const { id } = req.params;
     const { type } = req.query; // 'entrada' or 'salida'
     if (type !== 'entrada' && type !== 'salida') {
@@ -107,7 +108,7 @@ router.get('/:id/adjust', async (req, res) => {
 });
 
 // POST /inventory/:id/adjust - Save stock adjustment (Admin & Operator)
-router.post('/:id/adjust', async (req, res) => {
+router.post('/:id/adjust', isNotCustomer, async (req, res) => {
     const { id } = req.params;
     const { type, amount, concept } = req.body;
     const qtyAmount = parseFloat(amount);
@@ -146,8 +147,8 @@ router.post('/:id/adjust', async (req, res) => {
         
         // Log movement
         await pool.query(
-            'INSERT INTO supply_movements (supply_id, user_id, type, quantity, concept) VALUES ($1, $2, $3, $4, $5)',
-            [id, req.session.user.id, type, qtyAmount, concept || (type === 'entrada' ? 'Ajuste de entrada' : 'Ajuste de salida')]
+            'INSERT INTO supply_movements (supply_id, user_id, type, quantity, concept, branch_id) VALUES ($1, $2, $3, $4, $5, $6)',
+            [id, req.session.user.id, type, qtyAmount, concept || (type === 'entrada' ? 'Ajuste de entrada' : 'Ajuste de salida'), req.session.user.branch_id || null]
         );
         
         await pool.query('COMMIT');
@@ -167,16 +168,22 @@ router.get('/history', async (req, res) => {
     try {
         const { start_date, end_date, supply_id } = req.query;
         
+        let branchFilter = '';
+        const params = [];
+        let paramIndex = 1;
+        
+        if (!req.session.user.is_admin) {
+            branchFilter = ` AND m.branch_id = $${paramIndex++}`;
+            params.push(req.session.user.branch_id);
+        }
+        
         let query = `
             SELECT m.*, s.name as supply_name, u.username
             FROM supply_movements m
             JOIN supplies s ON m.supply_id = s.id
             LEFT JOIN users u ON m.user_id = u.id
-            WHERE 1=1
+            WHERE 1=1 ${branchFilter}
         `;
-        
-        const params = [];
-        let paramIndex = 1;
         
         if (start_date) {
             query += ` AND DATE(m.created_at) >= $${paramIndex++}`;

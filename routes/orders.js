@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated, isAdmin, isNotCustomer } = require('../middleware/auth');
+const { isAuthenticated, isAdmin, isNotCustomer, isManagerOrAdmin } = require('../middleware/auth');
 
 router.use(isAuthenticated);
 
@@ -133,9 +133,16 @@ router.post('/orders', isNotCustomer, async (req, res) => {
 });
 
 // Delete Order
-router.post('/orders/:id/delete', isAdmin, async (req, res) => {
+router.post('/orders/:id/delete', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     try {
+        if (!req.session.user.is_admin) {
+            const orderBranchRes = await pool.query('SELECT branch_id FROM orders WHERE id = $1', [id]);
+            if (orderBranchRes.rows.length === 0) return res.status(404).send('Pedido no encontrado');
+            if (orderBranchRes.rows[0].branch_id !== req.session.user.branch_id) {
+                return res.status(403).send('No autorizado: Este pedido pertenece a otra sucursal');
+            }
+        }
         await pool.query('DELETE FROM orders WHERE id = $1', [id]);
         if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
             return res.json({ success: true });
@@ -143,7 +150,7 @@ router.post('/orders/:id/delete', isAdmin, async (req, res) => {
         res.redirect('/dashboard');
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server Error');
+        res.status(500).send('Error');
     }
 });
 
@@ -364,6 +371,13 @@ router.post('/orders/:id/labor', isNotCustomer, async (req, res) => {
     const { id } = req.params;
     const { labor } = req.body;
     try {
+        if (!req.session.user.is_admin) {
+            const orderBranchRes = await pool.query('SELECT branch_id FROM orders WHERE id = $1', [id]);
+            if (orderBranchRes.rows.length === 0) return res.status(404).send('Pedido no encontrado');
+            if (orderBranchRes.rows[0].branch_id !== req.session.user.branch_id) {
+                return res.status(403).send('No autorizado: Este pedido pertenece a otra sucursal');
+            }
+        }
         await pool.query('UPDATE orders SET labor = $1 WHERE id = $2', [labor === true || labor === 'true', id]);
         res.json({ success: true });
     } catch (err) {
@@ -383,6 +397,14 @@ router.post('/orders/:id/split', isNotCustomer, async (req, res) => {
     }
     
     try {
+        if (!req.session.user.is_admin) {
+            const orderBranchRes = await pool.query('SELECT branch_id FROM orders WHERE id = $1', [id]);
+            if (orderBranchRes.rows.length === 0) return res.status(404).send('Pedido no encontrado');
+            if (orderBranchRes.rows[0].branch_id !== req.session.user.branch_id) {
+                return res.status(403).send('No autorizado: No puedes dividir pedidos de otras sucursales');
+            }
+        }
+
         await pool.query('BEGIN');
         
         // 1. Fetch the original order details
@@ -420,8 +442,8 @@ router.post('/orders/:id/split', isNotCustomer, async (req, res) => {
         
         // 3. Insert new order (Order B) copying other fields
         const insertQuery = `
-            INSERT INTO orders (label_id, quantity, total_sheets, status, observations, operator_id, position, labor)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO orders (label_id, quantity, total_sheets, status, observations, operator_id, position, labor, branch_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING id
         `;
         
@@ -433,7 +455,8 @@ router.post('/orders/:id/split', isNotCustomer, async (req, res) => {
             originalOrder.observations ? originalOrder.observations + ' (División)' : 'División',
             originalOrder.operator_id,
             originalOrder.position,
-            originalOrder.labor
+            originalOrder.labor,
+            originalOrder.branch_id
         ]);
         
         const newId = newOrderRes.rows[0].id;

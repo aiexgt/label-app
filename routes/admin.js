@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { isAuthenticated, isAdmin, isNotCustomer } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
@@ -17,13 +17,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Protect all admin routes
-router.use(isAuthenticated, isAdmin);
+// Protect all admin routes with authentication
+router.use(isAuthenticated);
 
+// PRODUCTS (Catálogo Base - Products & Qualities)
 // ==========================================
-// PRODUCTS
-// ==========================================
-router.get('/products', async (req, res) => {
+router.get('/products', isAdmin, async (req, res) => {
     try {
         const productsResult = await pool.query('SELECT * FROM products ORDER BY id DESC');
         const qualitiesResult = await pool.query('SELECT * FROM qualities ORDER BY id DESC');
@@ -39,7 +38,7 @@ router.get('/products', async (req, res) => {
     }
 });
 
-router.post('/products', async (req, res) => {
+router.post('/products', isAdmin, async (req, res) => {
     const { name } = req.body;
     try {
         await pool.query('INSERT INTO products (name) VALUES ($1)', [name]);
@@ -53,7 +52,7 @@ router.post('/products', async (req, res) => {
     }
 });
 
-router.post('/products/:id/delete', async (req, res) => {
+router.post('/products/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM products WHERE id = $1', [id]);
@@ -65,7 +64,7 @@ router.post('/products/:id/delete', async (req, res) => {
     }
 });
 
-router.post('/products/:id/edit', async (req, res) => {
+router.post('/products/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
     try {
@@ -86,7 +85,7 @@ router.post('/products/:id/edit', async (req, res) => {
 // ==========================================
 // QUALITIES
 // ==========================================
-router.get('/qualities', async (req, res) => {
+router.get('/qualities', isAdmin, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM qualities ORDER BY id DESC');
         res.render('admin/qualities', { qualities: result.rows });
@@ -96,7 +95,7 @@ router.get('/qualities', async (req, res) => {
     }
 });
 
-router.post('/qualities', async (req, res) => {
+router.post('/qualities', isAdmin, async (req, res) => {
     const { name } = req.body;
     try {
         await pool.query('INSERT INTO qualities (name) VALUES ($1)', [name]);
@@ -107,7 +106,7 @@ router.post('/qualities', async (req, res) => {
     }
 });
 
-router.post('/qualities/:id/delete', async (req, res) => {
+router.post('/qualities/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM qualities WHERE id = $1', [id]);
@@ -119,7 +118,7 @@ router.post('/qualities/:id/delete', async (req, res) => {
     }
 });
 
-router.post('/qualities/:id/edit', async (req, res) => {
+router.post('/qualities/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
     try {
@@ -140,7 +139,7 @@ router.post('/qualities/:id/edit', async (req, res) => {
 // ==========================================
 // BRANCHES
 // ==========================================
-router.post('/branches', async (req, res) => {
+router.post('/branches', isAdmin, async (req, res) => {
     const { name } = req.body;
     try {
         await pool.query('INSERT INTO branches (name) VALUES ($1)', [name]);
@@ -151,7 +150,7 @@ router.post('/branches', async (req, res) => {
     }
 });
 
-router.post('/branches/:id/delete', async (req, res) => {
+router.post('/branches/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM branches WHERE id = $1', [id]);
@@ -163,7 +162,7 @@ router.post('/branches/:id/delete', async (req, res) => {
     }
 });
 
-router.post('/branches/:id/edit', async (req, res) => {
+router.post('/branches/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
     try {
@@ -184,7 +183,7 @@ router.post('/branches/:id/edit', async (req, res) => {
 
 // LABELS
 // ==========================================
-router.get('/labels', async (req, res) => {
+router.get('/labels', isNotCustomer, async (req, res) => {
     try {
         const query = `
             SELECT l.*, p.name as product_name, q.name as quality_name
@@ -210,7 +209,7 @@ router.get('/labels', async (req, res) => {
     }
 });
 
-router.post('/labels', upload.fields([
+router.post('/labels', isAdmin, upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
@@ -239,7 +238,7 @@ router.post('/labels', upload.fields([
     }
 });
 
-router.get('/labels/:id/edit', async (req, res) => {
+router.get('/labels/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         const labelQuery = await pool.query('SELECT * FROM labels WHERE id = $1', [id]);
@@ -257,7 +256,7 @@ router.get('/labels/:id/edit', async (req, res) => {
     }
 });
 
-router.post('/labels/:id/edit', async (req, res) => {
+router.post('/labels/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { product_id, height, width, quality_id, qty_per_sheet, paper_type, tags } = req.body;
     try {
@@ -276,7 +275,7 @@ router.post('/labels/:id/edit', async (req, res) => {
     }
 });
 
-router.post('/labels/:id/files', upload.fields([
+router.post('/labels/:id/files', isAdmin, upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'word', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
@@ -317,7 +316,7 @@ router.post('/labels/:id/files', upload.fields([
     res.redirect('/admin/labels');
 });
 
-router.post('/labels/:id/delete', async (req, res) => {
+router.post('/labels/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM labels WHERE id = $1', [id]);
@@ -332,10 +331,10 @@ router.post('/labels/:id/delete', async (req, res) => {
 // ==========================================
 // USERS
 // ==========================================
-router.get('/users', async (req, res) => {
+router.get('/users', isAdmin, async (req, res) => {
     try {
         const usersResult = await pool.query(`
-            SELECT u.id, u.username, u.is_admin, u.is_customer, u.branch_id, b.name as branch_name
+            SELECT u.id, u.username, u.is_admin, u.is_customer, u.is_manager, u.branch_id, b.name as branch_name
             FROM users u
             LEFT JOIN branches b ON u.branch_id = b.id
             ORDER BY u.id
@@ -349,15 +348,15 @@ router.get('/users', async (req, res) => {
 });
 
 // Create User
-router.post('/users', async (req, res) => {
+router.post('/users', isAdmin, async (req, res) => {
     const { username, password, role, branch_id } = req.body;
     const finalBranchId = role === 'admin' ? null : (branch_id || null);
     try {
         const bcrypt = require('bcrypt');
         const hash = await bcrypt.hash(password, 10);
         await pool.query(
-            'INSERT INTO users (username, password_hash, is_admin, is_customer, branch_id) VALUES ($1, $2, $3, $4, $5)',
-            [username, hash, role === 'admin', role === 'customer', finalBranchId]
+            'INSERT INTO users (username, password_hash, is_admin, is_customer, is_manager, branch_id) VALUES ($1, $2, $3, $4, $5, $6)',
+            [username, hash, role === 'admin', role === 'customer', role === 'manager', finalBranchId]
         );
         res.redirect('/admin/users');
     } catch (err) {
@@ -367,7 +366,7 @@ router.post('/users', async (req, res) => {
 });
 
 // Update User Role
-router.post('/users/:id/role', async (req, res) => {
+router.post('/users/:id/role', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
     try {
@@ -375,8 +374,8 @@ router.post('/users/:id/role', async (req, res) => {
             return res.status(400).send('No puedes cambiar tu propio rol');
         }
         await pool.query(
-            'UPDATE users SET is_admin = $1, is_customer = $2 WHERE id = $3',
-            [role === 'admin', role === 'customer', id]
+            'UPDATE users SET is_admin = $1, is_customer = $2, is_manager = $3 WHERE id = $4',
+            [role === 'admin', role === 'customer', role === 'manager', id]
         );
         res.redirect('/admin/users');
     } catch (err) {
@@ -386,10 +385,10 @@ router.post('/users/:id/role', async (req, res) => {
 });
 
 // Edit User Page (GET)
-router.get('/users/:id/edit', async (req, res) => {
+router.get('/users/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
-        const userResult = await pool.query('SELECT id, username, is_admin, is_customer, branch_id FROM users WHERE id = $1', [id]);
+        const userResult = await pool.query('SELECT id, username, is_admin, is_customer, is_manager, branch_id FROM users WHERE id = $1', [id]);
         if (userResult.rows.length === 0) return res.status(404).send('Usuario no encontrado');
         const branchesResult = await pool.query('SELECT * FROM branches ORDER BY name');
         res.render('admin/users_edit', { targetUser: userResult.rows[0], branches: branchesResult.rows });
@@ -400,7 +399,7 @@ router.get('/users/:id/edit', async (req, res) => {
 });
 
 // Edit User Action (POST)
-router.post('/users/:id/edit', async (req, res) => {
+router.post('/users/:id/edit', isAdmin, async (req, res) => {
     const { id } = req.params;
     const { username, password, role, branch_id } = req.body;
     try {
@@ -409,11 +408,12 @@ router.post('/users/:id/edit', async (req, res) => {
         let isSelf = (parseInt(id) === req.session.user.id);
         let finalAdmin = isSelf ? true : (role === 'admin');
         let finalCustomer = isSelf ? false : (role === 'customer');
+        let finalManager = isSelf ? false : (role === 'manager');
         let finalBranchId = finalAdmin ? null : (branch_id || null);
         
-        let query = 'UPDATE users SET username = $1, is_admin = $2, is_customer = $3, branch_id = $4';
-        const params = [username, finalAdmin, finalCustomer, finalBranchId];
-        let paramIndex = 5;
+        let query = 'UPDATE users SET username = $1, is_admin = $2, is_customer = $3, is_manager = $4, branch_id = $5';
+        const params = [username, finalAdmin, finalCustomer, finalManager, finalBranchId];
+        let paramIndex = 6;
         
         if (password && password.trim() !== '') {
             const hash = await bcrypt.hash(password, 10);
@@ -431,6 +431,7 @@ router.post('/users/:id/edit', async (req, res) => {
             req.session.user.username = username;
             req.session.user.is_admin = finalAdmin;
             req.session.user.is_customer = finalCustomer;
+            req.session.user.is_manager = finalManager;
             req.session.user.branch_id = finalBranchId;
         }
         
@@ -442,7 +443,7 @@ router.post('/users/:id/edit', async (req, res) => {
 });
 
 // Delete User Action (POST)
-router.post('/users/:id/delete', async (req, res) => {
+router.post('/users/:id/delete', isAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         if (parseInt(id) === req.session.user.id) {
