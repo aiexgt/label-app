@@ -191,8 +191,10 @@
                              <% if (!user.is_customer) { %>
                                  <a href="/admin/labels" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Etiquetas</a>
                              <% } %>
-                             <% if (user.is_admin) { %>
+                             <% if (user.is_admin || user.is_manager) { %>
                                  <a href="/admin/products" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Catálogo</a>
+                             <% } %>
+                             <% if (user.is_admin) { %>
                                  <a href="/admin/users" class="text-ink-500 hover:text-ink-900 text-sm font-medium transition-colors">Usuarios</a>
                              <% } %>
                          </div>
@@ -242,8 +244,10 @@
                  <% if (!user.is_customer) { %>
                      <a href="/admin/labels" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Etiquetas</a>
                  <% } %>
-                 <% if (user.is_admin) { %>
+                 <% if (user.is_admin || user.is_manager) { %>
                      <a href="/admin/products" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Catálogo</a>
+                 <% } %>
+                 <% if (user.is_admin) { %>
                      <a href="/admin/users" class="text-ink-900 hover:bg-gray-50 dark:hover:bg-brand-50 block px-3 py-2 rounded-md text-base font-medium">Usuarios</a>
                  <% } %>
              </div>

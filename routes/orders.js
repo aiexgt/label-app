@@ -52,9 +52,7 @@ router.get('/dashboard', async (req, res) => {
         const board = {
             'backlog': orders.filter(o => o.status === 'backlog'),
             'pendiente': orders.filter(o => o.status === 'pendiente'),
-            'imprimiendo': orders.filter(o => o.status === 'imprimiendo'),
             'impreso': orders.filter(o => o.status === 'impreso'),
-            'cortando': orders.filter(o => o.status === 'cortando'),
             'terminado': orders.filter(o => o.status === 'terminado' && (!req.session.user.is_customer || (Date.now() - new Date(o.updated_at).getTime()) <= 48 * 60 * 60 * 1000)),
             'por_entregar': orders.filter(o => o.status === 'por_entregar'),
             'entregado': orders.filter(o => o.status === 'entregado')

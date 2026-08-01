@@ -22,7 +22,7 @@ router.use(isAuthenticated);
 
 // PRODUCTS (Catálogo Base - Products & Qualities)
 // ==========================================
-router.get('/products', isAdmin, async (req, res) => {
+router.get('/products', isManagerOrAdmin, async (req, res) => {
     try {
         const productsResult = await pool.query('SELECT * FROM products ORDER BY id DESC');
         const qualitiesResult = await pool.query('SELECT * FROM qualities ORDER BY id DESC');
@@ -38,7 +38,7 @@ router.get('/products', isAdmin, async (req, res) => {
     }
 });
 
-router.post('/products', isAdmin, async (req, res) => {
+router.post('/products', isManagerOrAdmin, async (req, res) => {
     const { name } = req.body;
     try {
         await pool.query('INSERT INTO products (name) VALUES ($1)', [name]);
@@ -52,7 +52,7 @@ router.post('/products', isAdmin, async (req, res) => {
     }
 });
 
-router.post('/products/:id/delete', isAdmin, async (req, res) => {
+router.post('/products/:id/delete', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM products WHERE id = $1', [id]);
@@ -64,7 +64,7 @@ router.post('/products/:id/delete', isAdmin, async (req, res) => {
     }
 });
 
-router.post('/products/:id/edit', isAdmin, async (req, res) => {
+router.post('/products/:id/edit', isManagerOrAdmin, async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
     try {

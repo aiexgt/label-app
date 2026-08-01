@@ -32,7 +32,7 @@ router.post('/orders/:id/status', checkOrderBranch, async (req, res) => {
     const { status } = req.body;
     
     // Allowed statuses
-    const allowed = ['backlog', 'pendiente', 'imprimiendo', 'impreso', 'cortando', 'terminado', 'por_entregar', 'entregado'];
+    const allowed = ['backlog', 'pendiente', 'impreso', 'terminado', 'por_entregar', 'entregado'];
     if (!allowed.includes(status)) {
         return res.status(400).json({ success: false, error: 'Invalid status' });
     }
